@@ -15,7 +15,7 @@ JSON. The page never sees the key, and there are no cross-site (CORS) problems
 because the request stays on your own domain.
 
 ```
-Browser ──/api/quotes──▶ Pages Function ──with secret key──▶ Finnhub
+Browser ──/api/quotes──▶ Pages Function ──with secret key──▶ Finnhub!
    ▲                          │
    └────────── JSON ──────────┘   (cached 60s at the edge)
 ```
