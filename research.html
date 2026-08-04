@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f2efe7" />
+  <title>Watercooler — Research</title>
+  <meta name="description" content="The readable output of the Watercooler system: a plain-language daily brief explaining what was researched, what changed, and why — institutional-style research made easy to skim." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- ===== Header ===== -->
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Watercooler home">
+      <span class="brand-mark" aria-hidden="true">
+        <span class="drop"></span>
+        <span class="ring ring-a"></span>
+        <span class="ring ring-b"></span>
+      </span>
+      <span>WATERCOOLER</span>
+    </a>
+    <nav class="desktop-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="fund.html">AI Fund</a>
+      <a href="research.html" aria-current="page">Research</a>
+    </nav>
+    <div class="header-actions">
+      <span class="status-pill"><span class="status-dot"></span> AI engine offline</span>
+      <a class="button button-dark button-small" href="fund.html">Open AI Fund</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+    <a href="index.html">Home</a>
+    <a href="fund.html">AI Fund</a>
+    <a href="research.html" aria-current="page">Research</a>
+    <span class="mobile-nav-foot">Ideas become indices.</span>
+  </nav>
+
+  <!-- ===== Ticker ===== -->
+  <div class="market-tape" aria-label="Portfolio ticker tape">
+    <div class="tape-track" id="marketTape"></div>
+  </div>
+
+  <main>
+    <!-- ===== Lead ===== -->
+    <section class="shell section-tight">
+      <div class="section-heading reveal">
+        <div>
+          <div class="eyebrow">Daily market brief</div>
+          <h2>The feed.</h2>
+        </div>
+        <p>
+          The readable output of the system. Rather than raw data, Research explains — in plain
+          language — what was observed, what changed, and why. Institutional-style research, easy to skim.
+        </p>
+      </div>
+
+      <!-- Morning brief (highlighted) -->
+      <article class="research-card wide reveal">
+        <span class="chip">Morning brief · illustrative</span>
+        <h3>What the system would write here.</h3>
+        <p>
+          Trimmed concentration in software and added to infrastructure, while keeping space exposure
+          because launch demand and backlog growth remain supportive. Macro conditions were steady;
+          sentiment around AI hardware stayed strong but slightly cooler than last week.
+        </p>
+        <p>
+          The aim is to make every decision explainable — never a black box. Each note ties back to a
+          clear thesis and a clear risk.
+        </p>
+      </article>
+    </section>
+
+    <!-- ===== Two column: changes + actions ===== -->
+    <section class="shell section-tight">
+      <div class="research-grid">
+        <!-- Portfolio changes -->
+        <article class="research-card reveal">
+          <span class="chip accent">Portfolio changes</span>
+          <h3>Why holdings moved.</h3>
+          <p><strong>Kept — Rocket Lab (RKLB).</strong> A worked example of the reasoning style:</p>
+          <blockquote>
+            Rocket Lab remained in the aggressive fund because launch demand, backlog growth and space
+            systems revenue continue to support the long-term thesis. The position was not increased
+            because current concentration is already above the preferred target.
+          </blockquote>
+          <p style="margin-top:14px;"><strong>Added — Infrastructure exposure.</strong> Broadened the fund toward a theme flagged in your preferences, at a small starter weight.</p>
+          <p><strong>Trimmed — Software concentration.</strong> Reduced an overweight to bring the fund back within its risk mandate.</p>
+        </article>
+
+        <!-- Today's actions log -->
+        <article class="research-card reveal" data-delay="1">
+          <span class="chip">Today's actions</span>
+          <h3>End-of-day log.</h3>
+          <div class="log-list">
+            <div class="log-item">
+              <div class="log-time">09:10</div>
+              <p>Reviewed the sectors you care about and ranked research priority by opportunity and conviction.</p>
+            </div>
+            <div class="log-item">
+              <div class="log-time">11:45</div>
+              <p>Read company news and earnings notes for current holdings; flagged one development worth monitoring.</p>
+            </div>
+            <div class="log-item">
+              <div class="log-time">12:30</div>
+              <p>Generated a short note on why current holdings still fit the mandate.</p>
+            </div>
+            <div class="log-item">
+              <div class="log-time">16:15</div>
+              <p>Prepared a daily recap with winners, losers and allocation ideas worth reviewing tomorrow.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== Risks + design note ===== -->
+    <section class="shell section-tight">
+      <div class="research-grid">
+        <article class="research-card reveal">
+          <span class="chip">Risks to monitor</span>
+          <h3>What we're watching.</h3>
+          <ul class="risk-list">
+            <li>Concentration in the aggressive fund sitting above its preferred target.</li>
+            <li>Rate and inflation surprises that could reprice long-duration growth names.</li>
+            <li>Sentiment reversals around AI hardware after an extended run.</li>
+            <li>Single-name event risk from upcoming earnings in core holdings.</li>
+          </ul>
+        </article>
+
+        <article class="research-card reveal" data-delay="1">
+          <span class="chip">Design note</span>
+          <h3>Simple on purpose.</h3>
+          <p>
+            Everything here is a placeholder for the future AI system — a daily brief, the research it did,
+            portfolio changes with reasons, company developments, economic shifts and an end-of-day summary.
+          </p>
+          <p>
+            At present prices are entered manually and the AI is not wired up. The structure is ready so the
+            agents can slot straight in when they arrive.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== Manifesto ===== -->
+    <section class="manifesto" aria-hidden="true">
+      <div class="manifesto-track">
+        <span>DAILY BRIEF&nbsp;•&nbsp; PLAIN LANGUAGE&nbsp;•&nbsp; EVERY DECISION EXPLAINED&nbsp;•&nbsp;</span>
+        <span>DAILY BRIEF&nbsp;•&nbsp; PLAIN LANGUAGE&nbsp;•&nbsp; EVERY DECISION EXPLAINED&nbsp;•&nbsp;</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="site-footer shell">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"><span class="drop"></span></span>
+      <span>WATERCOOLER</span>
+    </a>
+    <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="fund.html">AI Fund</a>
+      <a href="research.html">Research</a>
+      <span>© <span id="year"></span></span>
+    </nav>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
