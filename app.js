@@ -651,6 +651,67 @@ function initEvents() {
   el("savePrefsButton")?.addEventListener("click", savePrefs);
 }
 
+/* ---------------- Live data from the AI backend (D1) ---------------- */
+// Upgrades the built-in defaults to whatever the AI is currently running.
+// Silently keeps the defaults if the API isn't there (opened locally, not yet deployed).
+async function hydrateFromApi() {
+  try {
+    const res = await fetch("/api/funds", { headers: { accept: "application/json" } });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data?.funds?.length) return;
+    state.funds = data.funds.map(f => ({
+      id: f.code,
+      name: f.name,
+      code: f.code,
+      risk: f.risk,
+      description: f.description,
+      holdings: (f.holdings || []).map(h => ({ id: h.ticker, ...h }))
+    }));
+    if (!state.funds.some(fund => fund.id === activeFundId)) activeFundId = state.funds[0].id;
+    render();
+  } catch (error) {
+    // Keep the defaults.
+  }
+}
+
+async function hydrateResearch() {
+  const container = document.getElementById("brief");
+  if (!container) return;
+  try {
+    const res = await fetch("/api/research", { headers: { accept: "application/json" } });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data?.briefs?.length) return;
+    container.innerHTML = data.briefs.map((brief, index) => briefDayHtml(brief, index === 0)).join("");
+    observeReveals();
+  } catch (error) {
+    // Keep the static placeholder brief.
+  }
+}
+
+function briefDayHtml(brief, isLatest) {
+  const rows = [
+    ["Market", brief.market], ["Moves", brief.moves], ["Sentiment", brief.sentiment],
+    ["News", brief.news], ["Coming up", brief.comingUp], ["Why", brief.why]
+  ].filter(([, value]) => value);
+  const dateObj = brief.date ? new Date(`${brief.date}T00:00:00`) : null;
+  const dow = dateObj ? dateObj.toLocaleDateString("en-NZ", { weekday: "long" }) : "";
+  const dstr = dateObj ? dateObj.toLocaleDateString("en-NZ", { day: "numeric", month: "long", year: "numeric" }) : (brief.date || "");
+  return `
+    <article class="brief-day ${isLatest ? "today" : ""} reveal">
+      <div class="brief-head">
+        <div class="brief-date"><span class="brief-dow">${escapeHtml(dow)}</span><strong>${escapeHtml(dstr)}</strong></div>
+        ${isLatest ? '<span class="brief-return positive">Latest</span>' : ""}
+      </div>
+      <p class="brief-lede">${escapeHtml(brief.lede || "")}</p>
+      <dl class="brief-grid">
+        ${rows.map(([key, value]) => `<div><dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
+      </dl>
+    </article>
+  `;
+}
+
 /* ---------------- Boot ---------------- */
 if (el("year")) el("year").textContent = new Date().getFullYear();
 initNav();
@@ -661,3 +722,5 @@ render();
 observeReveals();
 refreshQuotes();
 setInterval(refreshQuotes, 60000);
+hydrateFromApi();
+hydrateResearch();
