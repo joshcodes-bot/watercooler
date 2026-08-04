@@ -13,12 +13,12 @@
  *   FINNHUB_API_KEY    secret (already used by /api/quotes)
  *   RUN_TOKEN          secret - any long random string you choose
  * Optional env:
- *   CLAUDE_MODEL     defaults to "claude-opus-4-8" (set "claude-haiku-4-5" for cheapest)
+ *   CLAUDE_MODEL     defaults to "claude-haiku-4-5" (cheapest); set "claude-opus-4-8" for max quality
  *   FUND_CAPITAL     notional $ per fund, defaults to 100000
  */
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const model = env.CLAUDE_MODEL || "claude-opus-4-8";
+  const model = env.CLAUDE_MODEL || "claude-haiku-4-5";
 
   if (!env.RUN_TOKEN || request.headers.get("x-run-token") !== env.RUN_TOKEN) {
     return json({ error: "Unauthorized" }, 401);
@@ -176,7 +176,8 @@ async function callClaude(env, model, system, user) {
     body: JSON.stringify({
       model,
       max_tokens: 8000,
-      thinking: { type: "disabled" }, // fast + cheap; the task is structured allocation
+      // No thinking config: on Haiku/Opus 4.8 this runs without thinking (fast + cheap);
+      // it also keeps the request valid across models that configure thinking differently.
       system,
       messages: [{ role: "user", content: user }]
     })

@@ -24,7 +24,7 @@ If that function isn't available (you opened the file locally, you're offline, o
 the key isn't set), the ticker silently falls back to the prices stored in the
 app. The site never breaks.
 
-## What's already in the repo
+## What's already in the repos
 
 - `functions/api/quotes.js`, the server code. In Cloudflare Pages, any file under
   `functions/` automatically becomes a live endpoint when you deploy. No separate
