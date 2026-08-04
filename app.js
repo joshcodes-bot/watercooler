@@ -375,15 +375,59 @@ function renderWinnersLosers() {
   winnersLosers.innerHTML = column("Winners", winners, "winner") + column("Losers", losers, "loser");
 }
 
+let liveQuotes = {};
+
 function renderTape() {
   if (!marketTape) return;
-  const holdings = state.funds.flatMap(fund => fund.holdings.map(item => ({ ...item, fund: fund.code })));
-  const items = holdings.length ? holdings : [{ ticker: "WTR", fund: "LOCAL", entryPrice: 1, currentPrice: 1 }];
+  // One entry per unique ticker across all funds.
+  const seen = new Map();
+  state.funds.forEach(fund => fund.holdings.forEach(item => {
+    if (!seen.has(item.ticker)) seen.set(item.ticker, item);
+  }));
+  let items = [...seen.values()];
+  if (!items.length) items = [{ ticker: "WTR", entryPrice: 1, currentPrice: 1 }];
+
   const markup = items.map(item => {
-    const move = item.entryPrice ? ((item.currentPrice - item.entryPrice) / item.entryPrice) * 100 : 0;
-    return `<span class="tape-item"><span>${escapeHtml(item.ticker)}</span><span>${money(item.currentPrice, 2)}</span><b class="${move < 0 ? "negative" : ""}">${move < 0 ? "▼" : "▲"} ${signed(move, 2)}</b></span>`;
+    const live = liveQuotes[item.ticker];
+    const price = live ? live.price : item.currentPrice;
+    const movePct = live && Number.isFinite(live.changePct)
+      ? live.changePct
+      : (item.entryPrice ? ((item.currentPrice - item.entryPrice) / item.entryPrice) * 100 : 0);
+    return `<span class="tape-item"><span>${escapeHtml(item.ticker)}</span><span>${money(price, 2)}</span><b class="${movePct < 0 ? "negative" : ""}">${movePct < 0 ? "▼" : "▲"} ${signed(movePct, 2)}</b></span>`;
   }).join("");
   marketTape.innerHTML = markup + markup;
+}
+
+// Pulls live quotes from the /api/quotes Pages Function. If it is not there
+// (opened as a local file, offline, or no API key set), the ticker quietly
+// keeps using the manually entered prices.
+async function refreshQuotes() {
+  if (!marketTape) return;
+  const symbols = [...new Set(state.funds.flatMap(fund => fund.holdings.map(h => h.ticker)))];
+  if (!symbols.length) return;
+  try {
+    const res = await fetch(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}`, {
+      headers: { accept: "application/json" }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.quotes || !Object.keys(data.quotes).length) return;
+    liveQuotes = data.quotes;
+    renderTape();
+    markTapeLive();
+  } catch (error) {
+    // No live feed available; the fallback ticker stays as-is.
+  }
+}
+
+function markTapeLive() {
+  const bar = marketTape.parentElement;
+  if (!bar || bar.querySelector(".tape-live")) return;
+  bar.classList.add("is-live");
+  const badge = document.createElement("span");
+  badge.className = "tape-live";
+  badge.textContent = "Live";
+  bar.insertBefore(badge, marketTape);
 }
 
 /* ---------------- Performance chart ---------------- */
@@ -688,3 +732,5 @@ initEvents();
 applyPrefs();
 render();
 observeReveals();
+refreshQuotes();
+setInterval(refreshQuotes, 60000);
