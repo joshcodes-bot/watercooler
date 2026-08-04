@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f2efe7" />
-  <title>Watercooler — Ideas become indices.</title>
-  <meta name="description" content="Watercooler turns conversations into structured investment strategies. Build custom model funds, track your picks and monitor performance — a research-driven fund laboratory." />
+  <title>Watercooler · Ideas become indices.</title>
+  <meta name="description" content="Build your own funds, back your own calls, and track how your picks really perform. A model-portfolio desk built in Hamilton, New Zealand." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -27,8 +27,7 @@
       <a href="research.html">Research</a>
     </nav>
     <div class="header-actions">
-      <span class="status-pill"><span class="status-dot"></span> AI engine offline</span>
-      <a class="button button-dark button-small" href="fund.html">Open AI Fund</a>
+      <a class="button button-dark button-small" href="fund.html">Your Funds</a>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
       <span></span><span></span><span></span>
@@ -43,7 +42,7 @@
   </nav>
 
   <!-- ===== Ticker ===== -->
-  <div class="market-tape" aria-label="Portfolio ticker tape">
+  <div class="market-tape" aria-label="Live portfolio ticker">
     <div class="tape-track" id="marketTape"></div>
   </div>
 
@@ -51,19 +50,19 @@
     <!-- ===== Hero ===== -->
     <section class="hero shell">
       <div class="hero-copy reveal">
-        <div class="eyebrow">Independent fund laboratory / Hamilton, NZ</div>
+        <div class="eyebrow">Built in Hamilton, New Zealand</div>
         <h1>Ideas become<br /><span class="outline">indices.</span></h1>
         <p class="hero-intro">
-          Watercooler is where conversations become structured strategy. Build custom model funds,
-          log your picks, set target weights and track performance — before the machines take over.
+          Back your own calls. Build a fund, pick the stocks, set the weights,
+          and watch how they actually perform.
         </p>
         <div class="hero-actions">
-          <a class="button button-accent" href="fund.html">Open AI Fund</a>
+          <a class="button button-accent" href="fund.html">See the funds</a>
           <a class="text-link" href="research.html">Read the research <span>↘</span></a>
         </div>
       </div>
 
-      <div class="hero-visual reveal" data-delay="1" aria-label="Abstract animated Watercooler market visual">
+      <div class="hero-visual reveal" data-delay="1" aria-label="Animated Watercooler market visual">
         <div class="visual-grid"></div>
         <div class="orb orb-main">
           <span class="orb-label">WTR</span>
@@ -90,7 +89,7 @@
           <strong id="metricFunds">3</strong>
         </article>
         <article>
-          <span class="metric-label">Tracked positions</span>
+          <span class="metric-label">Positions</span>
           <strong id="metricPositions">12</strong>
         </article>
         <article>
@@ -104,45 +103,23 @@
       </div>
     </section>
 
-    <!-- ===== What it does ===== -->
+    <!-- ===== Funds ===== -->
     <section class="shell section">
       <div class="section-heading reveal">
         <div>
-          <div class="eyebrow">01 / The platform</div>
-          <h2>One desk.<br />Every idea.</h2>
+          <div class="eyebrow">The funds</div>
+          <h2>Three funds,<br />three speeds.</h2>
         </div>
-        <p>
-          Create custom investment funds, track stock picks, monitor performance and read clear
-          research — all in one place. Prices are entered manually and saved only in your browser.
-        </p>
       </div>
-
       <div class="fund-grid" id="fundGrid" data-selectable="false"></div>
     </section>
 
-    <!-- ===== Manifesto ===== -->
-    <section class="manifesto" aria-hidden="true">
-      <div class="manifesto-track">
-        <span>NO BLACK BOXES&nbsp;•&nbsp; CLEAR THESIS&nbsp;•&nbsp; CLEAR RISK&nbsp;•&nbsp; READABLE RESEARCH&nbsp;•&nbsp;</span>
-        <span>NO BLACK BOXES&nbsp;•&nbsp; CLEAR THESIS&nbsp;•&nbsp; CLEAR RISK&nbsp;•&nbsp; READABLE RESEARCH&nbsp;•&nbsp;</span>
-      </div>
-    </section>
-
-    <!-- ===== CTA ===== -->
-    <section class="shell section">
-      <div class="section-heading reveal">
-        <div>
-          <div class="eyebrow">02 / Get started</div>
-          <h2>Build your<br />first fund.</h2>
-        </div>
-        <p>
-          The AI Fund page is your operating dashboard — holdings, target allocation, performance
-          against the S&amp;P 500, winners and losers, and placeholders for the agents to come.
-        </p>
-      </div>
-      <div class="hero-actions reveal" data-delay="1">
-        <a class="button button-accent" href="fund.html">Open AI Fund</a>
-        <a class="text-link" href="research.html">See a research brief <span>↘</span></a>
+    <!-- ===== Divider ===== -->
+    <section class="shell section-tight">
+      <div class="divider reveal" aria-hidden="true">
+        <span class="divider-line"></span>
+        <span class="divider-mark"></span>
+        <span class="divider-line"></span>
       </div>
     </section>
   </main>
@@ -158,7 +135,7 @@
       <a href="index.html">Home</a>
       <a href="fund.html">AI Fund</a>
       <a href="research.html">Research</a>
-      <span>© <span id="year"></span></span>
+      <span>Josh McWilliam 2026</span>
     </nav>
   </footer>
 

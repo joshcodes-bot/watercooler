@@ -1,5 +1,5 @@
 /* ============================================================
-   Watercooler — shared app logic (page-aware)
+   Watercooler shared app logic (page-aware)
    Every render helper no-ops if its page elements are absent,
    so the same file safely powers Home, AI Fund and Research.
    ============================================================ */
@@ -59,7 +59,7 @@ const defaultFunds = [
 
 const defaultPrefs = {
   risk: "Balanced",
-  horizon: "3–5 years",
+  horizon: "3 to 5 years",
   depth: "Concise",
   maxPosition: "25",
   industries: "Space, AI, Infrastructure, Defence",
@@ -123,7 +123,20 @@ function escapeHtml(value = "") {
 function riskLabel(risk) {
   if (risk === "Aggressive") return "High risk";
   if (risk === "Defensive") return "Low risk";
-  return "Mid risk";
+  return "Medium risk";
+}
+
+// 3 = high, 2 = medium, 1 = low, drives the card strip, badge and meter.
+function riskLevel(risk) {
+  if (risk === "Aggressive") return 3;
+  if (risk === "Defensive") return 1;
+  return 2;
+}
+
+function riskClass(risk) {
+  if (risk === "Aggressive") return "risk-high";
+  if (risk === "Defensive") return "risk-low";
+  return "risk-med";
 }
 
 function signed(value, digits = 1, suffix = "%") {
@@ -179,11 +192,13 @@ function renderFundCards() {
     const stats = fundStats(fund);
     const active = selectable && fund.id === activeFundId ? "active" : "";
     return `
-      <article class="fund-card reveal ${active}" data-risk="${escapeHtml(fund.risk)}" data-fund-id="${fund.id}" data-delay="${index % 3}">
+      <article class="fund-card reveal ${active}" data-risk="${escapeHtml(fund.risk)}" data-level="${riskLevel(fund.risk)}" data-fund-id="${fund.id}" data-delay="${index % 3}">
+        <span class="risk-strip" aria-hidden="true"></span>
         <div class="fund-card-head">
-          <span class="risk-tag">${riskLabel(fund.risk)}</span>
+          <span class="risk-badge ${riskClass(fund.risk)}">${riskLabel(fund.risk)}</span>
           <span class="fund-code">${escapeHtml(fund.code)}</span>
         </div>
+        <div class="risk-meter" aria-hidden="true"><i></i><i></i><i></i></div>
         <h3>${escapeHtml(fund.name)}</h3>
         <p>${escapeHtml(fund.description || "A custom model portfolio.")}</p>
         <div class="fund-card-footer">
@@ -218,18 +233,35 @@ function renderFundSelect() {
     .join("");
 }
 
+let metricsAnimated = false;
+const reduceMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function setMetric(node, target, format) {
+  if (!node) return;
+  if (metricsAnimated || reduceMotion()) { node.textContent = format(target); return; }
+  const start = performance.now();
+  const duration = 900;
+  (function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    node.textContent = format(target * eased);
+    if (t < 1) requestAnimationFrame(frame);
+    else node.textContent = format(target);
+  })(start);
+}
+
 function renderTopMetrics() {
   const totals = allStats();
   const pnl = totals.value - totals.cost;
-  if (el("metricFunds")) el("metricFunds").textContent = state.funds.length;
-  if (el("metricPositions")) el("metricPositions").textContent = totals.positions;
-  if (el("metricValue")) el("metricValue").textContent = money(totals.value);
+  setMetric(el("metricFunds"), state.funds.length, v => String(Math.round(v)));
+  setMetric(el("metricPositions"), totals.positions, v => String(Math.round(v)));
+  setMetric(el("metricValue"), totals.value, v => money(v));
   if (el("metricPnl")) {
-    const pnlEl = el("metricPnl");
-    pnlEl.textContent = `${pnl >= 0 ? "+" : ""}${money(pnl)}`;
-    pnlEl.className = pnl >= 0 ? "positive" : "negative";
+    el("metricPnl").className = pnl >= 0 ? "positive" : "negative";
+    setMetric(el("metricPnl"), pnl, v => `${pnl >= 0 ? "+" : ""}${money(v)}`);
   }
   if (el("heroFundCount")) el("heroFundCount").textContent = String(state.funds.length).padStart(2, "0");
+  metricsAnimated = true;
 }
 
 function renderSummary() {
@@ -282,7 +314,7 @@ function renderHoldings() {
             <span class="asset-badge">${escapeHtml(item.ticker.slice(0, 5))}</span>
             <span class="asset-meta">
               <strong>${escapeHtml(item.ticker)}</strong>
-              <span title="${escapeHtml(item.thesis || item.company || "")}">${escapeHtml(item.company || item.thesis || "—")}</span>
+              <span title="${escapeHtml(item.thesis || item.company || "")}">${escapeHtml(item.company || item.thesis || "")}</span>
             </span>
           </div>
         </td>
@@ -332,7 +364,7 @@ function renderWinnersLosers() {
         <div class="wl-row">
           <div>
             <strong class="tkr">${escapeHtml(item.ticker)}</strong>
-            <p>${escapeHtml(item.company || item.thesis || "—")}</p>
+            <p>${escapeHtml(item.company || item.thesis || "")}</p>
           </div>
           <strong class="${type === "winner" ? "positive" : "negative"}">${signed(item.returnPct)}</strong>
         </div>
@@ -349,7 +381,7 @@ function renderTape() {
   const items = holdings.length ? holdings : [{ ticker: "WTR", fund: "LOCAL", entryPrice: 1, currentPrice: 1 }];
   const markup = items.map(item => {
     const move = item.entryPrice ? ((item.currentPrice - item.entryPrice) / item.entryPrice) * 100 : 0;
-    return `<span class="tape-item"><span>${escapeHtml(item.ticker)}</span><span>${money(item.currentPrice, 2)}</span><b class="${move < 0 ? "negative" : ""}">${signed(move, 2)}</b><span>${escapeHtml(item.fund)}</span></span>`;
+    return `<span class="tape-item"><span>${escapeHtml(item.ticker)}</span><span>${money(item.currentPrice, 2)}</span><b class="${move < 0 ? "negative" : ""}">${move < 0 ? "▼" : "▲"} ${signed(move, 2)}</b></span>`;
   }).join("");
   marketTape.innerHTML = markup + markup;
 }

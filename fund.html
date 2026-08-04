@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f2efe7" />
-  <title>Watercooler — AI Fund</title>
-  <meta name="description" content="The Watercooler AI Fund desk: manage model portfolios, holdings, target allocation and performance against the S&P 500, with placeholders for future AI agents." />
+  <title>Watercooler · AI Fund</title>
+  <meta name="description" content="Manage the Watercooler model funds: holdings, target weights, performance against the S&P 500, winners and losers, and the agents to come." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -27,8 +27,7 @@
       <a href="research.html">Research</a>
     </nav>
     <div class="header-actions">
-      <span class="status-pill"><span class="status-dot"></span> AI engine offline</span>
-      <button class="button button-dark button-small" data-open-fund-modal>New fund</button>
+      <a class="button button-dark button-small" href="fund.html">Your Funds</a>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
       <span></span><span></span><span></span>
@@ -43,36 +42,34 @@
   </nav>
 
   <!-- ===== Ticker ===== -->
-  <div class="market-tape" aria-label="Portfolio ticker tape">
+  <div class="market-tape" aria-label="Live portfolio ticker">
     <div class="tape-track" id="marketTape"></div>
   </div>
 
   <main>
-    <!-- ===== Intro ===== -->
+    <!-- ===== Our Funds ===== -->
     <section class="shell section-tight">
       <div class="section-heading reveal">
         <div>
-          <div class="eyebrow">The desk</div>
-          <h2>Your funds.<br />Your mandate.</h2>
+          <div class="eyebrow">Three models</div>
+          <h2>Our Funds.</h2>
         </div>
-        <p>
-          The operating dashboard. Pick a fund to manage its holdings, watch performance against the
-          S&amp;P 500, and tune the preferences that will one day steer the agents.
-        </p>
+        <div style="justify-self: end; align-self: end;">
+          <button class="button button-accent button-small" data-open-fund-modal>New fund</button>
+        </div>
       </div>
-
-      <!-- Fund rail: click a card to make it active -->
       <div class="fund-grid" id="fundGrid" data-selectable="true"></div>
     </section>
 
-    <!-- ===== Fund manager desk ===== -->
+    <!-- ===== Holdings ===== -->
     <section class="shell section-tight" id="fundDesk">
-      <div class="desk reveal">
-        <div class="desk-head">
-          <div class="eyebrow">Fund manager</div>
-          <h2>Manage positions.</h2>
-          <p>Add tickers, set target weights, update prices and keep a clean record of every thesis.</p>
+      <div class="section-heading reveal">
+        <div>
+          <div class="eyebrow">Manage</div>
+          <h2>Holdings.</h2>
         </div>
+      </div>
+      <div class="desk reveal">
         <div class="toolbar">
           <div>
             <span class="micro-label">Active fund</span>
@@ -123,14 +120,12 @@
           <div class="eyebrow">Performance</div>
           <h2>Fund vs S&amp;P.</h2>
         </div>
-        <p>Open performance from your manually entered prices. Live history and a real benchmark can be connected later.</p>
       </div>
-
       <div class="perf-grid">
         <div class="chart-box reveal">
           <div class="chart-meta">
             <div>
-              <span class="micro-label">Illustrative until live history is added</span>
+              <span class="micro-label">Illustrative until live history is wired</span>
               <strong id="chartReturn" class="positive">+0.0%</strong>
             </div>
             <span id="chartSubline">Fund vs benchmark</span>
@@ -142,17 +137,14 @@
           <article class="score-card">
             <span class="micro-label">Fund return</span>
             <strong id="scoreReturn" class="positive">+0.0%</strong>
-            <p>Open performance based on your manually entered prices.</p>
           </article>
           <article class="score-card">
             <span class="micro-label">Vs S&amp;P 500</span>
             <strong id="scoreBenchmark" class="positive">+0.0%</strong>
-            <p>A placeholder comparison until live benchmark data is connected.</p>
           </article>
           <article class="score-card">
             <span class="micro-label">Daily return</span>
             <strong id="scoreDaily" class="positive">+0.0%</strong>
-            <p>Illustrative — built to become a real daily snapshot later.</p>
           </article>
         </div>
       </div>
@@ -174,53 +166,52 @@
       </div>
     </section>
 
-    <!-- ===== Future AI agents ===== -->
+    <!-- ===== Agents ===== -->
     <section class="shell section-tight">
       <div class="section-heading reveal">
         <div>
           <div class="eyebrow">Coming soon</div>
-          <h2>Four agents.</h2>
+          <h2>The agents.</h2>
         </div>
-        <p>The interface is built so a future agent stack can score signals then propose changes — and explain every decision, never a black box.</p>
       </div>
       <div class="agents-grid">
         <article class="agent-card reveal" data-delay="0">
           <span class="chip">News</span>
           <h4>News Agent</h4>
-          <p>Reads company news, earnings announcements and important market events.</p>
+          <p>Reads company news, earnings and the market events that move a stock.</p>
         </article>
         <article class="agent-card reveal" data-delay="1">
           <span class="chip">Macro</span>
           <h4>Macro Agent</h4>
-          <p>Monitors interest rates, inflation, employment, growth and market conditions.</p>
+          <p>Watches rates, inflation, jobs and growth, and what they mean for the fund.</p>
         </article>
         <article class="agent-card reveal" data-delay="2">
           <span class="chip">Sentiment</span>
           <h4>Sentiment Agent</h4>
-          <p>Measures market mood and discussion around companies, sectors and themes.</p>
+          <p>Reads the mood around companies, sectors and themes you care about.</p>
         </article>
         <article class="agent-card reveal" data-delay="3">
           <span class="chip">Portfolio</span>
           <h4>Portfolio Agent</h4>
-          <p>Combines the research and proposes additions, removals, trims and weights.</p>
+          <p>Weighs it all up and proposes what to add, trim, hold or cut, and why.</p>
         </article>
       </div>
     </section>
 
-    <!-- ===== Preferences (settings folded in) ===== -->
+    <!-- ===== Preferences ===== -->
     <section class="shell section-tight">
       <div class="panel reveal">
         <div class="panel-head">
           <div>
             <span class="micro-label">Personalisation</span>
-            <h3>Your preferences.</h3>
+            <h3>Preferences.</h3>
           </div>
           <button class="button button-accent button-small" id="savePrefsButton">Save</button>
         </div>
         <div class="panel-body">
           <div class="prefs-grid">
             <label class="field">
-              <span>Preferred risk profile</span>
+              <span>Risk profile</span>
               <select id="prefRisk">
                 <option>Aggressive</option>
                 <option selected>Balanced</option>
@@ -228,12 +219,12 @@
               </select>
             </label>
             <label class="field">
-              <span>Investment time horizon</span>
+              <span>Time horizon</span>
               <select id="prefHorizon">
                 <option>Under 1 year</option>
-                <option>1–3 years</option>
-                <option selected>3–5 years</option>
-                <option>5+ years</option>
+                <option>1 to 3 years</option>
+                <option selected>3 to 5 years</option>
+                <option>5 years plus</option>
               </select>
             </label>
             <label class="field">
@@ -245,7 +236,7 @@
               </select>
             </label>
             <label class="field">
-              <span>Maximum position size %</span>
+              <span>Max position size %</span>
               <input id="prefMaxPosition" type="number" min="0" max="100" step="1" placeholder="25" />
             </label>
             <label class="field full">
@@ -254,10 +245,10 @@
             </label>
             <label class="field full">
               <span>Companies or themes to prioritise</span>
-              <textarea id="prefWatch" rows="3" placeholder="Stocks I like, themes I care about, signals I want the AI to prioritise..."></textarea>
+              <textarea id="prefWatch" rows="3" placeholder="Stocks you like, themes you care about, signals you want prioritised"></textarea>
             </label>
           </div>
-          <p class="field-note">These save locally in your browser for now. They are here so the AI layer has a clear home to plug into later.</p>
+          <p class="field-note">Saved to this browser.</p>
         </div>
       </div>
     </section>
@@ -274,7 +265,7 @@
       <a href="index.html">Home</a>
       <a href="fund.html">AI Fund</a>
       <a href="research.html">Research</a>
-      <span>© <span id="year"></span></span>
+      <span>Josh McWilliam 2026</span>
     </nav>
   </footer>
 
@@ -307,7 +298,7 @@
         </label>
         <label class="field field-wide">
           <span>Mandate</span>
-          <textarea name="description" rows="3" maxlength="180" placeholder="What is this fund trying to own and why?"></textarea>
+          <textarea name="description" rows="3" maxlength="180" placeholder="What is this fund trying to own, and why?"></textarea>
         </label>
       </div>
       <div class="modal-actions">
@@ -321,7 +312,7 @@
     <form method="dialog" id="holdingForm">
       <div class="modal-header">
         <div>
-          <div class="eyebrow">Position ticket</div>
+          <div class="eyebrow">Position</div>
           <h2 id="holdingModalTitle">Add a position</h2>
         </div>
         <button class="modal-close" type="button" data-close-modal aria-label="Close">×</button>

@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f2efe7" />
-  <title>Watercooler — Research</title>
-  <meta name="description" content="The readable output of the Watercooler system: a plain-language daily brief explaining what was researched, what changed, and why — institutional-style research made easy to skim." />
+  <title>Watercooler · Research</title>
+  <meta name="description" content="A plain-language daily brief: what the market did, what the funds did, the sentiment and news that mattered, and the reasoning behind every call." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -27,8 +27,7 @@
       <a href="research.html" aria-current="page">Research</a>
     </nav>
     <div class="header-actions">
-      <span class="status-pill"><span class="status-dot"></span> AI engine offline</span>
-      <a class="button button-dark button-small" href="fund.html">Open AI Fund</a>
+      <a class="button button-dark button-small" href="fund.html">Your Funds</a>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
       <span></span><span></span><span></span>
@@ -43,117 +42,92 @@
   </nav>
 
   <!-- ===== Ticker ===== -->
-  <div class="market-tape" aria-label="Portfolio ticker tape">
+  <div class="market-tape" aria-label="Live portfolio ticker">
     <div class="tape-track" id="marketTape"></div>
   </div>
 
   <main>
-    <!-- ===== Lead ===== -->
+    <!-- ===== Heading ===== -->
     <section class="shell section-tight">
       <div class="section-heading reveal">
         <div>
-          <div class="eyebrow">Daily market brief</div>
-          <h2>The feed.</h2>
+          <div class="eyebrow">Daily brief</div>
+          <h2>The brief.</h2>
         </div>
-        <p>
-          The readable output of the system. Rather than raw data, Research explains — in plain
-          language — what was observed, what changed, and why. Institutional-style research, easy to skim.
-        </p>
       </div>
 
-      <!-- Morning brief (highlighted) -->
-      <article class="research-card wide reveal">
-        <span class="chip">Morning brief · illustrative</span>
-        <h3>What the system would write here.</h3>
-        <p>
-          Trimmed concentration in software and added to infrastructure, while keeping space exposure
-          because launch demand and backlog growth remain supportive. Macro conditions were steady;
-          sentiment around AI hardware stayed strong but slightly cooler than last week.
-        </p>
-        <p>
-          The aim is to make every decision explainable — never a black box. Each note ties back to a
-          clear thesis and a clear risk.
-        </p>
-      </article>
-    </section>
+      <!-- ===== Day-by-day timeline ===== -->
+      <div class="brief">
 
-    <!-- ===== Two column: changes + actions ===== -->
-    <section class="shell section-tight">
-      <div class="research-grid">
-        <!-- Portfolio changes -->
-        <article class="research-card reveal">
-          <span class="chip accent">Portfolio changes</span>
-          <h3>Why holdings moved.</h3>
-          <p><strong>Kept — Rocket Lab (RKLB).</strong> A worked example of the reasoning style:</p>
-          <blockquote>
-            Rocket Lab remained in the aggressive fund because launch demand, backlog growth and space
-            systems revenue continue to support the long-term thesis. The position was not increased
-            because current concentration is already above the preferred target.
-          </blockquote>
-          <p style="margin-top:14px;"><strong>Added — Infrastructure exposure.</strong> Broadened the fund toward a theme flagged in your preferences, at a small starter weight.</p>
-          <p><strong>Trimmed — Software concentration.</strong> Reduced an overweight to bring the fund back within its risk mandate.</p>
-        </article>
-
-        <!-- Today's actions log -->
-        <article class="research-card reveal" data-delay="1">
-          <span class="chip">Today's actions</span>
-          <h3>End-of-day log.</h3>
-          <div class="log-list">
-            <div class="log-item">
-              <div class="log-time">09:10</div>
-              <p>Reviewed the sectors you care about and ranked research priority by opportunity and conviction.</p>
+        <!-- Tuesday 4 August 2026 -->
+        <article class="brief-day today reveal">
+          <div class="brief-head">
+            <div class="brief-date">
+              <span class="brief-dow">Tuesday</span>
+              <strong>4 August 2026</strong>
             </div>
-            <div class="log-item">
-              <div class="log-time">11:45</div>
-              <p>Read company news and earnings notes for current holdings; flagged one development worth monitoring.</p>
-            </div>
-            <div class="log-item">
-              <div class="log-time">12:30</div>
-              <p>Generated a short note on why current holdings still fit the mandate.</p>
-            </div>
-            <div class="log-item">
-              <div class="log-time">16:15</div>
-              <p>Prepared a daily recap with winners, losers and allocation ideas worth reviewing tomorrow.</p>
-            </div>
+            <span class="brief-return positive">Funds +0.8%</span>
           </div>
+          <p class="brief-lede">Quiet session. Soft inflation data nudged the market up, and Whitewater did the heavy lifting again.</p>
+          <dl class="brief-grid">
+            <div><dt>Market</dt><dd>US large caps closed higher. Inflation came in a shade below expectations, which took some heat off interest rates. Industrials and energy led. Software lagged.</dd></div>
+            <div><dt>Moves</dt><dd>Held the lot. <b>Whitewater</b> is already running hot on space and AI, so we sat on our hands rather than chase it higher.</dd></div>
+            <div><dt>Sentiment</dt><dd>Steady. The noise around AI hardware cooled off from last week but stayed positive. No panic, no euphoria.</dd></div>
+            <div><dt>News</dt><dd><b>Rocket Lab</b> picked up another launch contract, which backs the growth story we own it for. <b>Nvidia</b> locked in its next earnings date.</dd></div>
+            <div><dt>Coming up</dt><dd>Nvidia and Palantir both report inside the next fortnight. They sit in Whitewater, so expect the action there.</dd></div>
+            <div><dt>Why</dt><dd>Softer inflation helps the long-run growth names we hold. But the fund is already concentrated, so we would rather wait for a dip than pay up now.</dd></div>
+          </dl>
         </article>
+
+        <!-- Monday 3 August 2026 -->
+        <article class="brief-day reveal">
+          <div class="brief-head">
+            <div class="brief-date">
+              <span class="brief-dow">Monday</span>
+              <strong>3 August 2026</strong>
+            </div>
+            <span class="brief-return positive">Funds +0.1%</span>
+          </div>
+          <p class="brief-lede">A waiting game. The market sat tight ahead of Tuesday's inflation print.</p>
+          <dl class="brief-grid">
+            <div><dt>Market</dt><dd>Flat on the day. Low volume, everyone waiting on the data. Bonds firmed, which gave <b>Stillwater</b> a small lift.</dd></div>
+            <div><dt>Moves</dt><dd>Opened a small starter position in infrastructure inside <b>Tidewater</b>. It fits the balanced mandate and spreads the fund past tech.</dd></div>
+            <div><dt>Sentiment</dt><dd>Cautious. Wide spreads and thin trade. Classic wait and see.</dd></div>
+            <div><dt>News</dt><dd><b>Costco</b> posted solid monthly sales, which supports the Stillwater thesis. Visa's payment volumes held up.</dd></div>
+            <div><dt>Coming up</dt><dd>Inflation data Tuesday. A run of retail earnings later in the week.</dd></div>
+            <div><dt>Why</dt><dd>Adding infrastructure now, at a light weight, gives Tidewater a second engine if tech stalls. A low-risk way to diversify.</dd></div>
+          </dl>
+        </article>
+
+        <!-- Friday 31 July 2026 -->
+        <article class="brief-day reveal">
+          <div class="brief-head">
+            <div class="brief-date">
+              <span class="brief-dow">Friday</span>
+              <strong>31 July 2026</strong>
+            </div>
+            <span class="brief-return positive">Funds +1.4%</span>
+          </div>
+          <p class="brief-lede">Strong finish to the month. Tech led, and Whitewater closed the week out in front.</p>
+          <dl class="brief-grid">
+            <div><dt>Market</dt><dd>Broad rally into month end. Growth and semiconductors led the charge. The S&amp;P finished the week up.</dd></div>
+            <div><dt>Moves</dt><dd>Trimmed part of the software overweight in <b>Whitewater</b> back toward target. Banked some of the run.</dd></div>
+            <div><dt>Sentiment</dt><dd>Upbeat, bordering on hot. AI names were the talk of the tape all week.</dd></div>
+            <div><dt>News</dt><dd><b>Microsoft</b> and <b>Alphabet</b> both flagged strong cloud demand. Tesla stayed choppy on delivery numbers.</dd></div>
+            <div><dt>Coming up</dt><dd>A fresh month means new inflation and jobs data. Earnings season rolls on.</dd></div>
+            <div><dt>Why</dt><dd>When a position runs well past its target weight, we trim. It keeps the fund honest and books gains without trying to call the top.</dd></div>
+          </dl>
+        </article>
+
       </div>
     </section>
 
-    <!-- ===== Risks + design note ===== -->
+    <!-- ===== Divider ===== -->
     <section class="shell section-tight">
-      <div class="research-grid">
-        <article class="research-card reveal">
-          <span class="chip">Risks to monitor</span>
-          <h3>What we're watching.</h3>
-          <ul class="risk-list">
-            <li>Concentration in the aggressive fund sitting above its preferred target.</li>
-            <li>Rate and inflation surprises that could reprice long-duration growth names.</li>
-            <li>Sentiment reversals around AI hardware after an extended run.</li>
-            <li>Single-name event risk from upcoming earnings in core holdings.</li>
-          </ul>
-        </article>
-
-        <article class="research-card reveal" data-delay="1">
-          <span class="chip">Design note</span>
-          <h3>Simple on purpose.</h3>
-          <p>
-            Everything here is a placeholder for the future AI system — a daily brief, the research it did,
-            portfolio changes with reasons, company developments, economic shifts and an end-of-day summary.
-          </p>
-          <p>
-            At present prices are entered manually and the AI is not wired up. The structure is ready so the
-            agents can slot straight in when they arrive.
-          </p>
-        </article>
-      </div>
-    </section>
-
-    <!-- ===== Manifesto ===== -->
-    <section class="manifesto" aria-hidden="true">
-      <div class="manifesto-track">
-        <span>DAILY BRIEF&nbsp;•&nbsp; PLAIN LANGUAGE&nbsp;•&nbsp; EVERY DECISION EXPLAINED&nbsp;•&nbsp;</span>
-        <span>DAILY BRIEF&nbsp;•&nbsp; PLAIN LANGUAGE&nbsp;•&nbsp; EVERY DECISION EXPLAINED&nbsp;•&nbsp;</span>
+      <div class="divider reveal" aria-hidden="true">
+        <span class="divider-line"></span>
+        <span class="divider-mark"></span>
+        <span class="divider-line"></span>
       </div>
     </section>
   </main>
@@ -169,7 +143,7 @@
       <a href="index.html">Home</a>
       <a href="fund.html">AI Fund</a>
       <a href="research.html">Research</a>
-      <span>© <span id="year"></span></span>
+      <span>Josh McWilliam 2026</span>
     </nav>
   </footer>
 
