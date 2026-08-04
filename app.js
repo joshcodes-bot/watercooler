@@ -72,18 +72,22 @@ function cloneDefaults() {
 }
 
 function loadState() {
+  // Read-only dashboard: funds always come from code (the AI's book, for now),
+  // so wording/holdings edits show immediately. We only remember which fund the
+  // viewer last looked at.
+  let savedActiveFundId = "whitewater";
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (stored?.funds?.length) return stored;
+    if (stored?.activeFundId) savedActiveFundId = stored.activeFundId;
   } catch (error) {
     console.warn("Could not read saved Watercooler data", error);
   }
-  return { funds: cloneDefaults(), activeFundId: "whitewater" };
+  return { funds: cloneDefaults(), activeFundId: savedActiveFundId };
 }
 
 function saveState() {
   state.activeFundId = activeFundId;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeFundId }));
 }
 
 function loadPrefs() {
@@ -590,6 +594,45 @@ function render() {
   saveState();
 }
 
+/* ---------------- Hero agent mesh (interactive) ---------------- */
+function initMesh() {
+  const stage = document.querySelector(".hero-visual");
+  const mesh = document.getElementById("mesh");
+  if (stage && mesh) {
+    let frame;
+    stage.addEventListener("pointermove", event => {
+      const rect = stage.getBoundingClientRect();
+      const dx = (event.clientX - rect.left) / rect.width - 0.5;
+      const dy = (event.clientY - rect.top) / rect.height - 0.5;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        mesh.style.transform = `perspective(900px) rotateY(${dx * 16}deg) rotateX(${-dy * 16}deg)`;
+      });
+    });
+    stage.addEventListener("pointerleave", () => {
+      mesh.style.transform = "perspective(900px) rotateY(0deg) rotateX(0deg)";
+    });
+  }
+
+  // Cycle the caption so it reads like the agents are talking to each other.
+  const caption = document.getElementById("meshCaption");
+  if (caption) {
+    const lines = [
+      "News → Portfolio: RKLB launch contract logged",
+      "Macro → Portfolio: inflation cooling, rates steady",
+      "Sentiment → Portfolio: AI hardware mood positive",
+      "Portfolio → hold: Whitewater concentration high",
+      "Debate → trim the software overweight? Not yet."
+    ];
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % lines.length;
+      caption.style.opacity = "0";
+      setTimeout(() => { caption.textContent = lines[i]; caption.style.opacity = "1"; }, 260);
+    }, 3400);
+  }
+}
+
 /* ---------------- Navigation (mobile hamburger) ---------------- */
 function initNav() {
   const hamburger = el("hamburger");
@@ -612,6 +655,7 @@ function initEvents() {
 if (el("year")) el("year").textContent = new Date().getFullYear();
 initNav();
 initEvents();
+initMesh();
 applyPrefs();
 render();
 observeReveals();

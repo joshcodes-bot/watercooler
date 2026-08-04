@@ -394,6 +394,27 @@ body.nav-open .mobile-nav a:nth-child(4) { animation-delay: 0.29s; }
 @keyframes dash { to { stroke-dashoffset: -160; } }
 .visual-note { position: absolute; left: 20px; bottom: 18px; font-size: 11px; font-weight: 900; line-height: 1.25; letter-spacing: 0.12em; text-transform: uppercase; z-index: 4; }
 
+/* ---------------- Hero AI agent mesh ---------------- */
+.mesh { position: absolute; inset: 0; margin: auto; width: 92%; height: 92%; z-index: 3; transform: perspective(900px); transition: transform 0.3s ease; will-change: transform; }
+.mesh-links line { stroke: var(--ink); stroke-width: 2; }
+.mesh-mesh { stroke: rgba(11, 11, 11, 0.5); stroke-width: 1.5; }
+.mesh-spin { transform-origin: 200px 200px; animation: meshSpin 26s linear infinite; }
+.mesh-spin circle { fill: none; stroke: rgba(11, 11, 11, 0.2); stroke-width: 1.5; }
+.mesh-spin-ring { stroke: rgba(62, 92, 255, 0.45) !important; animation: meshSpin 18s linear infinite reverse; transform-origin: 200px 200px; }
+@keyframes meshSpin { to { transform: rotate(360deg); } }
+.pulse { fill: var(--blue); }
+.pulse.alt { fill: var(--ink); }
+.node circle { fill: var(--paper); stroke: var(--ink); stroke-width: 2.5; }
+.node.hub circle { fill: var(--ink); }
+.node.agent circle { fill: var(--white); transform-box: fill-box; transform-origin: center; animation: nodePulse 3.2s ease-in-out infinite; }
+.node.agent:nth-of-type(3) circle { animation-delay: 0.3s; }
+.node.agent:nth-of-type(4) circle { animation-delay: 0.8s; }
+.node.agent:nth-of-type(5) circle { animation-delay: 1.2s; }
+@keyframes nodePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+.node-label { fill: var(--ink); font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-anchor: middle; font-family: Inter, sans-serif; }
+.hub-label { fill: var(--white); font-size: 15px; letter-spacing: 0.1em; }
+.mesh-caption { position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 4; font-size: 11px; font-weight: 800; letter-spacing: 0.03em; color: var(--ink); background: rgba(242, 239, 231, 0.72); backdrop-filter: blur(4px); border: 1px solid var(--line); padding: 9px 11px; transition: opacity 0.25s ease; }
+
 /* ---------------- Metric strip ---------------- */
 .metric-strip { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--ink); background: var(--white); }
 .metric-strip article {
@@ -746,6 +767,9 @@ html.has-motion .reveal { opacity: 0; transform: none; transition: none; }
   }
   .reveal { opacity: 1; transform: none; }
   .mobile-nav a { opacity: 1; transform: none; }
-  /* The market ticker is core to the product, so keep it scrolling. */
+  /* The market ticker and hero mesh are core to the product, so keep them moving. */
   .tape-track { animation-duration: 32s !important; animation-iteration-count: infinite !important; }
+  .mesh-spin { animation-duration: 26s !important; animation-iteration-count: infinite !important; }
+  .mesh-spin-ring { animation-duration: 18s !important; animation-iteration-count: infinite !important; }
+  .node.agent circle { animation-duration: 3.2s !important; animation-iteration-count: infinite !important; }
 }
