@@ -664,6 +664,14 @@ body.nav-open .mobile-nav a:nth-child(4) { animation-delay: 0.29s; }
 .brief-grid dd { margin: 0; line-height: 1.55; color: #2c2b25; }
 .brief-grid dd b { color: var(--ink); }
 
+/* ---------------- Animated wave band ---------------- */
+.wave-band { position: relative; height: 118px; overflow: hidden; }
+.wave-layer { position: absolute; inset: 0; background-repeat: repeat-x; background-position: 0 100%; background-size: 400px 100%; animation: waveMove 16s linear infinite; }
+.wave-1 { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 150' preserveAspectRatio='none'%3E%3Cpath fill='%230b0b0b' d='M0,70 Q50,40 100,70 T200,70 T300,70 T400,70 L400,150 L0,150 Z'/%3E%3C/svg%3E"); }
+.wave-2 { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 150' preserveAspectRatio='none'%3E%3Cpath fill='%230b0b0b' d='M0,58 Q50,86 100,58 T200,58 T300,58 T400,58 L400,150 L0,150 Z'/%3E%3C/svg%3E"); opacity: 0.5; animation-duration: 22s; animation-direction: reverse; }
+.wave-3 { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 150' preserveAspectRatio='none'%3E%3Cpath fill='%230b0b0b' d='M0,48 Q50,24 100,48 T200,48 T300,48 T400,48 L400,150 L0,150 Z'/%3E%3C/svg%3E"); opacity: 0.25; animation-duration: 30s; }
+@keyframes waveMove { from { background-position: 0 100%; } to { background-position: -400px 100%; } }
+
 /* ---------------- Footer ---------------- */
 .site-footer {
   min-height: 170px;
@@ -772,4 +780,5 @@ html.has-motion .reveal { opacity: 0; transform: none; transition: none; }
   .mesh-spin { animation-duration: 26s !important; animation-iteration-count: infinite !important; }
   .mesh-spin-ring { animation-duration: 18s !important; animation-iteration-count: infinite !important; }
   .node.agent circle { animation-duration: 3.2s !important; animation-iteration-count: infinite !important; }
+  .wave-layer { animation-duration: 20s !important; animation-iteration-count: infinite !important; }
 }
