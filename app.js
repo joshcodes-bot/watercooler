@@ -21,7 +21,7 @@ const defaultFunds = [
     name: "Whitewater",
     code: "WTR-AG",
     risk: "Aggressive",
-    description: "Concentrated exposure to ambitious companies where upside matters more than smoothness.",
+    description: "The highest-risk fund. Backs bold, fast-growing companies for the biggest upside, and cops the swings that come with it.",
     holdings: [
       { id: uid(), ticker: "RKLB", company: "Rocket Lab", weight: 28, shares: 90, entryPrice: 24.2, currentPrice: 27.6, thesis: "Launch, space systems and long-duration infrastructure growth." },
       { id: uid(), ticker: "NVDA", company: "NVIDIA", weight: 25, shares: 12, entryPrice: 132.5, currentPrice: 146.1, thesis: "Core compute layer for accelerated AI workloads." },
@@ -34,7 +34,7 @@ const defaultFunds = [
     name: "Tidewater",
     code: "WTR-MD",
     risk: "Balanced",
-    description: "A growth-led core with enough quality and diversification to stay invested through noise.",
+    description: "The middle-ground fund. A solid core of quality companies with enough spread to keep growing through the noise.",
     holdings: [
       { id: uid(), ticker: "MSFT", company: "Microsoft", weight: 24, shares: 8, entryPrice: 446.2, currentPrice: 462.8, thesis: "Cloud distribution, enterprise software and AI monetisation." },
       { id: uid(), ticker: "GOOGL", company: "Alphabet", weight: 20, shares: 14, entryPrice: 184.7, currentPrice: 191.3, thesis: "Search cash flows funding a broad AI and infrastructure portfolio." },
@@ -47,7 +47,7 @@ const defaultFunds = [
     name: "Stillwater",
     code: "WTR-LO",
     risk: "Defensive",
-    description: "Durable cash flows, broad market exposure and lower concentration for a calmer ride.",
+    description: "The lowest-risk fund. Steady, reliable earners and broad market cover for a calm, slow-and-steady ride.",
     holdings: [
       { id: uid(), ticker: "VOO", company: "Vanguard S&P 500 ETF", weight: 38, shares: 10, entryPrice: 552.1, currentPrice: 563.4, thesis: "Low-cost US large-cap core exposure." },
       { id: uid(), ticker: "BRK.B", company: "Berkshire Hathaway", weight: 20, shares: 8, entryPrice: 472.2, currentPrice: 479.5, thesis: "Diversified quality assets and disciplined capital allocation." },
@@ -96,8 +96,6 @@ function loadPrefs() {
 
 let state = loadState();
 let activeFundId = state.activeFundId || state.funds[0]?.id;
-let editingFundId = null;
-let editingHoldingId = null;
 
 /* ---------------- Formatting helpers ---------------- */
 function money(value, digits = 0) {
@@ -178,10 +176,6 @@ const emptyState = el("emptyState");
 const winnersLosers = el("winnersLosers");
 const chartSvg = el("chartSvg");
 const marketTape = el("marketTape");
-const fundModal = el("fundModal");
-const holdingModal = el("holdingModal");
-const fundForm = el("fundForm");
-const holdingForm = el("holdingForm");
 const toast = el("toast");
 
 /* ---------------- Renderers ---------------- */
@@ -324,23 +318,12 @@ function renderHoldings() {
         <td>${money(item.currentPrice, 2)}</td>
         <td><strong>${money(value)}</strong></td>
         <td class="${returnPct >= 0 ? "positive" : "negative"}"><strong>${signed(returnPct)}</strong></td>
-        <td>
-          <div class="row-actions">
-            <button class="row-button" data-edit-holding="${item.id}" title="Edit">✎</button>
-            <button class="row-button" data-delete-holding="${item.id}" title="Delete">×</button>
-          </div>
-        </td>
       </tr>
     `;
   }).join("");
 
   if (emptyState) emptyState.classList.toggle("visible", holdings.length === 0);
   if (holdingsTable) holdingsTable.style.display = holdings.length ? "table" : "none";
-
-  holdingsBody.querySelectorAll("[data-edit-holding]").forEach(button =>
-    button.addEventListener("click", () => openHoldingModal(button.dataset.editHolding)));
-  holdingsBody.querySelectorAll("[data-delete-holding]").forEach(button =>
-    button.addEventListener("click", () => deleteHolding(button.dataset.deleteHolding)));
 }
 
 function renderWinnersLosers() {
@@ -414,20 +397,9 @@ async function refreshQuotes() {
     if (!data || !data.quotes || !Object.keys(data.quotes).length) return;
     liveQuotes = data.quotes;
     renderTape();
-    markTapeLive();
   } catch (error) {
     // No live feed available; the fallback ticker stays as-is.
   }
-}
-
-function markTapeLive() {
-  const bar = marketTape.parentElement;
-  if (!bar || bar.querySelector(".tape-live")) return;
-  bar.classList.add("is-live");
-  const badge = document.createElement("span");
-  badge.className = "tape-live";
-  badge.textContent = "Live";
-  bar.insertBefore(badge, marketTape);
 }
 
 /* ---------------- Performance chart ---------------- */
@@ -509,89 +481,6 @@ function savePrefs() {
   showToast("Preferences saved.");
 }
 
-/* ---------------- Modals ---------------- */
-function openFundModal(fundId = null) {
-  if (!fundModal) return;
-  editingFundId = fundId;
-  fundForm.reset();
-  el("fundModalTitle").textContent = fundId ? "Edit fund" : "Create a fund";
-  el("saveFundButton").textContent = fundId ? "Update fund" : "Save fund";
-  if (fundId) {
-    const fund = state.funds.find(item => item.id === fundId);
-    if (fund) {
-      fundForm.elements.name.value = fund.name;
-      fundForm.elements.code.value = fund.code;
-      fundForm.elements.risk.value = fund.risk;
-      fundForm.elements.description.value = fund.description || "";
-    }
-  }
-  fundModal.showModal();
-  setTimeout(() => fundForm.elements.name.focus(), 40);
-}
-
-function openHoldingModal(holdingId = null) {
-  if (!holdingModal || !activeFund()) return;
-  editingHoldingId = holdingId;
-  holdingForm.reset();
-  el("holdingModalTitle").textContent = holdingId ? "Edit position" : "Add a position";
-  el("saveHoldingButton").textContent = holdingId ? "Update position" : "Save position";
-  if (holdingId) {
-    const holding = activeFund().holdings.find(item => item.id === holdingId);
-    if (holding) Object.entries(holding).forEach(([key, value]) => {
-      if (holdingForm.elements[key]) holdingForm.elements[key].value = value;
-    });
-  }
-  holdingModal.showModal();
-  setTimeout(() => holdingForm.elements.ticker.focus(), 40);
-}
-
-function deleteHolding(id) {
-  const fund = activeFund();
-  const holding = fund.holdings.find(item => item.id === id);
-  if (!holding || !confirm(`Remove ${holding.ticker} from ${fund.name}?`)) return;
-  fund.holdings = fund.holdings.filter(item => item.id !== id);
-  showToast(`${holding.ticker} removed.`);
-  render();
-}
-
-function deleteFund() {
-  const fund = activeFund();
-  if (!fund || !confirm(`Delete ${fund.name} and all of its positions?`)) return;
-  state.funds = state.funds.filter(item => item.id !== fund.id);
-  activeFundId = state.funds[0]?.id;
-  showToast(`${fund.name} deleted.`);
-  render();
-}
-
-/* ---------------- Import / export ---------------- */
-function exportData() {
-  const blob = new Blob([JSON.stringify({ ...state, exportedAt: new Date().toISOString() }, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `watercooler-funds-${new Date().toISOString().slice(0, 10)}.json`;
-  anchor.click();
-  URL.revokeObjectURL(url);
-  showToast("Fund data exported.");
-}
-
-function importData(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-      if (!Array.isArray(imported.funds)) throw new Error("Invalid file");
-      state = { funds: imported.funds, activeFundId: imported.activeFundId || imported.funds[0]?.id };
-      activeFundId = state.activeFundId;
-      render();
-      showToast("Fund data imported.");
-    } catch (error) {
-      showToast("Could not import that file.");
-    }
-  };
-  reader.readAsText(file);
-}
-
 /* ---------------- Toast + reveals ---------------- */
 function showToast(message) {
   if (!toast) return;
@@ -646,7 +535,9 @@ function motionReveals(targets) {
     el.classList.add("visible"); // mark processed so re-renders don't rebind
     const delay = (Number(el.dataset.delay) || 0) * 0.09;
     const stop = inView(el, () => {
-      animate(el, { opacity: [0, 1], y: [26, 0] }, { duration: 0.7, delay, ease: [0.2, 0.75, 0.2, 1] });
+      // Fade on a soft ease, movement on a gentle spring for a livelier settle.
+      animate(el, { opacity: 1 }, { duration: 0.5, delay, ease: "easeOut" });
+      animate(el, { y: [32, 0] }, { type: "spring", stiffness: 90, damping: 15, delay });
       if (typeof stop === "function") stop(); // fire once
     }, { amount: 0.15 });
   });
@@ -667,6 +558,19 @@ function motionReveals(targets) {
   }, 1800);
 }
 
+// Springy lift on hover for fund and agent cards (Motion owns the transform).
+function initHoverSprings() {
+  if (!window.Motion?.animate) return;
+  const { animate } = window.Motion;
+  document.querySelectorAll(".fund-card, .agent-card").forEach(card => {
+    if (card.dataset.hoverBound) return;
+    card.dataset.hoverBound = "1";
+    const lift = card.classList.contains("agent-card") ? -6 : -8;
+    card.addEventListener("pointerenter", () => animate(card, { y: lift, scale: 1.015 }, { type: "spring", stiffness: 260, damping: 20 }));
+    card.addEventListener("pointerleave", () => animate(card, { y: 0, scale: 1 }, { type: "spring", stiffness: 260, damping: 24 }));
+  });
+}
+
 /* ---------------- Master render ---------------- */
 function render() {
   if (!state.funds.length) {
@@ -682,6 +586,7 @@ function render() {
   renderWinnersLosers();
   renderChart();
   renderTape();
+  initHoverSprings();
   saveState();
 }
 
@@ -696,74 +601,11 @@ function initNav() {
 }
 
 /* ---------------- Wiring ---------------- */
+// Read-only dashboard: viewers can switch the active fund and save the
+// preferences that steer the AI. Portfolios are managed by the AI, not by hand.
 function initEvents() {
   fundSelect?.addEventListener("change", () => { activeFundId = fundSelect.value; render(); });
-  fundForm?.addEventListener("submit", event => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(fundForm));
-    const duplicate = state.funds.find(fund => fund.code.toUpperCase() === data.code.trim().toUpperCase() && fund.id !== editingFundId);
-    if (duplicate) return showToast("That fund code already exists.");
-    if (editingFundId) {
-      const fund = state.funds.find(item => item.id === editingFundId);
-      Object.assign(fund, { name: data.name.trim(), code: data.code.trim().toUpperCase(), risk: data.risk, description: data.description.trim() });
-      showToast("Fund updated.");
-    } else {
-      const newFund = { id: uid(), name: data.name.trim(), code: data.code.trim().toUpperCase(), risk: data.risk, description: data.description.trim(), holdings: [] };
-      state.funds.push(newFund);
-      activeFundId = newFund.id;
-      showToast("Fund created.");
-    }
-    fundModal.close();
-    render();
-  });
-
-  holdingForm?.addEventListener("submit", event => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(holdingForm));
-    const fund = activeFund();
-    const position = {
-      ticker: data.ticker.trim().toUpperCase(),
-      company: data.company.trim(),
-      weight: Number(data.weight),
-      shares: Number(data.shares),
-      entryPrice: Number(data.entryPrice),
-      currentPrice: Number(data.currentPrice),
-      thesis: data.thesis.trim()
-    };
-    if (editingHoldingId) {
-      Object.assign(fund.holdings.find(item => item.id === editingHoldingId), position);
-      showToast("Position updated.");
-    } else {
-      fund.holdings.push({ id: uid(), ...position });
-      showToast(`${position.ticker} added to ${fund.name}.`);
-    }
-    holdingModal.close();
-    render();
-  });
-
-  document.querySelectorAll("[data-open-fund-modal]").forEach(button => button.addEventListener("click", () => openFundModal()));
-  document.querySelectorAll("[data-open-holding-modal]").forEach(button => button.addEventListener("click", () => openHoldingModal()));
-  el("editFundButton")?.addEventListener("click", () => openFundModal(activeFundId));
-  el("deleteFundButton")?.addEventListener("click", deleteFund);
-  el("exportButton")?.addEventListener("click", exportData);
-  el("importInput")?.addEventListener("change", event => {
-    const file = event.target.files[0];
-    if (file) importData(file);
-    event.target.value = "";
-  });
   el("savePrefsButton")?.addEventListener("click", savePrefs);
-
-  document.querySelectorAll("[data-close-modal]").forEach(button =>
-    button.addEventListener("click", () => button.closest("dialog").close()));
-
-  [fundModal, holdingModal].forEach(modal => {
-    if (!modal) return;
-    modal.addEventListener("click", event => {
-      const rect = modal.getBoundingClientRect();
-      const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-      if (!inside) modal.close();
-    });
-  });
 }
 
 /* ---------------- Boot ---------------- */

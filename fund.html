@@ -50,9 +50,6 @@
           <div class="eyebrow">Three models</div>
           <h2>Our Funds.</h2>
         </div>
-        <div style="justify-self: end; align-self: end;">
-          <button class="button button-accent button-small" data-open-fund-modal>New fund</button>
-        </div>
       </div>
       <div class="fund-grid" id="fundGrid" data-selectable="true"></div>
     </section>
@@ -61,7 +58,7 @@
     <section class="shell section-tight" id="fundDesk">
       <div class="section-heading reveal">
         <div>
-          <div class="eyebrow">Manage</div>
+          <div class="eyebrow">Portfolio</div>
           <h2>Holdings.</h2>
         </div>
       </div>
@@ -70,16 +67,6 @@
           <div>
             <span class="micro-label">Active fund</span>
             <select id="fundSelect" aria-label="Select active fund"></select>
-          </div>
-          <div class="toolbar-actions">
-            <button class="button button-accent button-small" data-open-holding-modal>Add position</button>
-            <button class="button button-ghost button-small" id="exportButton">Export</button>
-            <label class="button button-ghost button-small import-label">
-              Import
-              <input type="file" id="importInput" accept="application/json" />
-            </label>
-            <button class="icon-button" id="editFundButton" title="Edit fund" aria-label="Edit fund">✎</button>
-            <button class="icon-button danger" id="deleteFundButton" title="Delete fund" aria-label="Delete fund">×</button>
           </div>
         </div>
         <div class="summary-strip" id="fundSummary"></div>
@@ -94,16 +81,14 @@
                 <th>Last</th>
                 <th>Value</th>
                 <th>Return</th>
-                <th></th>
               </tr>
             </thead>
             <tbody id="holdingsBody"></tbody>
           </table>
           <div class="empty-state" id="emptyState">
-            <span>＋</span>
+            <span>○</span>
             <h3>No positions yet.</h3>
-            <p>Add the first ticker to begin building this fund.</p>
-            <button class="button button-dark" data-open-holding-modal>Add a position</button>
+            <p>This fund is not holding anything right now.</p>
           </div>
         </div>
       </div>
@@ -263,91 +248,6 @@
       <span>Josh McWilliam 2026</span>
     </nav>
   </footer>
-
-  <!-- ===== Modals ===== -->
-  <dialog class="modal" id="fundModal">
-    <form method="dialog" id="fundForm">
-      <div class="modal-header">
-        <div>
-          <div class="eyebrow">Fund settings</div>
-          <h2 id="fundModalTitle">Create a fund</h2>
-        </div>
-        <button class="modal-close" type="button" data-close-modal aria-label="Close">×</button>
-      </div>
-      <div class="form-grid">
-        <label class="field field-wide">
-          <span>Fund name</span>
-          <input name="name" required maxlength="40" placeholder="e.g. Frontier" />
-        </label>
-        <label class="field">
-          <span>Code</span>
-          <input name="code" required maxlength="10" placeholder="WTR-FR" />
-        </label>
-        <label class="field">
-          <span>Risk</span>
-          <select name="risk" required>
-            <option>Aggressive</option>
-            <option selected>Balanced</option>
-            <option>Defensive</option>
-          </select>
-        </label>
-        <label class="field field-wide">
-          <span>Mandate</span>
-          <textarea name="description" rows="3" maxlength="180" placeholder="What is this fund trying to own, and why?"></textarea>
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button class="button button-ghost" type="button" data-close-modal>Cancel</button>
-        <button class="button button-accent" value="default" id="saveFundButton">Save fund</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog class="modal" id="holdingModal">
-    <form method="dialog" id="holdingForm">
-      <div class="modal-header">
-        <div>
-          <div class="eyebrow">Position</div>
-          <h2 id="holdingModalTitle">Add a position</h2>
-        </div>
-        <button class="modal-close" type="button" data-close-modal aria-label="Close">×</button>
-      </div>
-      <div class="form-grid">
-        <label class="field">
-          <span>Ticker</span>
-          <input name="ticker" required maxlength="10" placeholder="RKLB" autocomplete="off" />
-        </label>
-        <label class="field">
-          <span>Company / asset</span>
-          <input name="company" maxlength="50" placeholder="Rocket Lab" />
-        </label>
-        <label class="field">
-          <span>Target weight %</span>
-          <input name="weight" required type="number" min="0" max="100" step="0.1" placeholder="15" />
-        </label>
-        <label class="field">
-          <span>Units</span>
-          <input name="shares" required type="number" min="0" step="0.0001" placeholder="100" />
-        </label>
-        <label class="field">
-          <span>Average price</span>
-          <input name="entryPrice" required type="number" min="0" step="0.01" placeholder="25.00" />
-        </label>
-        <label class="field">
-          <span>Latest price</span>
-          <input name="currentPrice" required type="number" min="0" step="0.01" placeholder="28.50" />
-        </label>
-        <label class="field field-wide">
-          <span>Thesis</span>
-          <textarea name="thesis" rows="3" maxlength="220" placeholder="Why does this position belong in the fund?"></textarea>
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button class="button button-ghost" type="button" data-close-modal>Cancel</button>
-        <button class="button button-accent" value="default" id="saveHoldingButton">Save position</button>
-      </div>
-    </form>
-  </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="vendor/motion.js"></script>
