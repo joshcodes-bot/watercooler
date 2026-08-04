@@ -19,6 +19,7 @@ A multi-page site sharing one stylesheet and one script.
 - app.js                Shared, page-aware logic; each renderer no-ops if its
                         page elements are absent, so one file powers all pages
 - logo.png              Brand logo used in the header and footer
+- vendor/motion.js      Motion library (motion.dev), vendored so it works offline
 - functions/api/quotes.js   Cloudflare Pages Function for live stock quotes
 - LIVE-DATA.md          How to switch the live ticker on (read this first)
 
@@ -36,7 +37,9 @@ Features
 - Performance panel (illustrative fund vs S&P 500) and winners and losers
 - Personalisation preferences (risk, horizon, depth, max position, industries)
 - JSON export and import, saved locally with localStorage
-- Mobile hamburger navigation, scroll-reveal animations, count-up metrics
+- Mobile hamburger navigation, count-up metrics
+- Spring-style entrance animations via Motion (motion.dev), with a CSS fallback
+- Scrolling market ticker that keeps moving even under reduce-motion
 - Live ticker via a Cloudflare Pages Function (falls back to stored prices)
 - Respects prefers-reduced-motion
 

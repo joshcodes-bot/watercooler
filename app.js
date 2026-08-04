@@ -602,15 +602,30 @@ function showToast(message) {
 }
 
 function showAllReveals() {
-  document.querySelectorAll(".reveal:not(.visible)").forEach(el => el.classList.add("visible"));
+  document.querySelectorAll(".reveal:not(.visible)").forEach(el => {
+    el.classList.add("visible");
+    el.style.opacity = "";
+    el.style.transform = "";
+  });
 }
 
 function observeReveals() {
-  const targets = document.querySelectorAll(".reveal:not(.visible)");
+  const targets = [...document.querySelectorAll(".reveal:not(.visible)")];
   if (!targets.length) return;
-  // No IntersectionObserver support → just show everything.
-  if (!("IntersectionObserver" in window)) return showAllReveals();
 
+  // Preferred path: spring-style entrances via the Motion library.
+  if (document.documentElement.classList.contains("has-motion") && window.Motion?.inView && window.Motion?.animate) {
+    try {
+      motionReveals(targets);
+      return;
+    } catch (error) {
+      document.documentElement.classList.remove("has-motion");
+    }
+  }
+
+  // Fallback: CSS transitions driven by IntersectionObserver.
+  document.documentElement.classList.remove("has-motion");
+  if (!("IntersectionObserver" in window)) return showAllReveals();
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -620,10 +635,36 @@ function observeReveals() {
     });
   }, { threshold: 0.12 });
   targets.forEach(target => observer.observe(target));
-
-  // Safety net: never let content stay hidden if the observer never fires.
   clearTimeout(observeReveals.fallback);
   observeReveals.fallback = setTimeout(showAllReveals, 1600);
+}
+
+// One-shot fade-and-rise as each element scrolls into view, staggered by data-delay.
+function motionReveals(targets) {
+  const { inView, animate } = window.Motion;
+  targets.forEach(el => {
+    el.classList.add("visible"); // mark processed so re-renders don't rebind
+    const delay = (Number(el.dataset.delay) || 0) * 0.09;
+    const stop = inView(el, () => {
+      animate(el, { opacity: [0, 1], y: [26, 0] }, { duration: 0.7, delay, ease: [0.2, 0.75, 0.2, 1] });
+      if (typeof stop === "function") stop(); // fire once
+    }, { amount: 0.15 });
+  });
+
+  // Safety net: rescue any element already in the viewport that never animated
+  // (e.g. if the IntersectionObserver behind inView doesn't fire). Off-screen
+  // elements are left alone so they still reveal on scroll.
+  clearTimeout(motionReveals.fallback);
+  motionReveals.fallback = setTimeout(() => {
+    document.querySelectorAll(".reveal").forEach(el => {
+      const rect = el.getBoundingClientRect();
+      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inViewport && getComputedStyle(el).opacity === "0") {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+      }
+    });
+  }, 1800);
 }
 
 /* ---------------- Master render ---------------- */
