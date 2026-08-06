@@ -1,55 +1,38 @@
-LiquidAssets website
-===================
+LiquidAssets website — V3
+=========================
 
-Open index.html in your browser, or serve the folder locally:
+Open index.html directly, or serve the folder locally:
 
     python -m http.server 8080
 
-then visit http://localhost:8080
+Then visit http://localhost:8080
 
-Structure
----------
-A multi-page site sharing one stylesheet and one script.
-
-- index.html            Home: hero, live ticker, metrics, the three funds
-- fund.html             AI Fund: funds, holdings manager, performance vs S&P,
-                        winners and losers, the agents, and preferences
-- research.html         Research: a sequential day-by-day market brief
-- styles.css            Shared AI/institutional theme (dark header and hero, clean dashboard)
-- app.js                Shared, page-aware logic; each renderer no-ops if its
-                        page elements are absent, so one file powers all pages
-- logo.png              Brand logo used in the header and footer
-- vendor/motion.js      Motion library (motion.dev), vendored so it works offline
-- functions/api/quotes.js   Cloudflare Pages Function for live stock quotes
-- LIVE-DATA.md          How to switch the live ticker on (read this first)
-
-Theme
+Pages
 -----
-A restrained AI/institutional look: black navigation and hero, luminous LiquidAssets blue,
-clean white financial surfaces, precise type and subtle motion. Voice stays plain and human.
-No em dashes.
+- index.html      Home, hero, scrolling market tape, metrics, agents and fund summaries
+- fund.html       AI funds, holdings, performance, winners/losers and preferences
+- research.html   Daily market and fund brief
+- styles.css      Shared responsive design and animation system
+- app.js          Shared page-aware data, rendering and API logic
 
-Features
---------
-- Create, edit and delete funds; add, edit and remove ticker positions
-- Manual target weights, units, average price and latest price
-- Automatic model value, open P/L and position returns
-- Clear High / Medium / Low risk badges and meters
-- Performance panel (illustrative fund vs S&P 500) and winners and losers
-- Personalisation preferences (risk, horizon, depth, max position, industries)
-- JSON export and import, saved locally with localStorage
-- Mobile hamburger navigation, count-up metrics
-- Spring-style entrance animations via Motion (motion.dev), with a CSS fallback
-- Scrolling market ticker that keeps moving even under reduce-motion
-- Live ticker via a Cloudflare Pages Function (falls back to stored prices)
-- Respects prefers-reduced-motion
+Design
+------
+This version is intentionally simpler and bolder: black, off-white and LiquidAssets blue,
+strong geometric type, square edges, fewer effects and clear information hierarchy.
+The header logo is now inline SVG plus live text, so it remains crisp and never displays
+an awkward black rectangle or background.
 
-Live data
----------
-The top ticker can show real quotes once deployed on Cloudflare Pages with a free
-Finnhub API key. Full setup is in LIVE-DATA.md. Until then it uses stored prices.
+Ticker
+------
+The ticker is rendered twice in app.js as two identical groups. CSS continuously moves the
+combined strip by half its total width, producing a seamless full-width marquee. It uses the
+existing /api/quotes endpoint when available and stored prices as a fallback.
+
+Backend
+-------
+The existing API contract is unchanged. Keep or add your Cloudflare Pages functions directory
+when deploying. See LIVE-DATA.md and AI-SETUP.md.
 
 Notes
 -----
-No account or database is required yet. Holdings prices are entered manually.
-Model portfolios only. Not financial advice, and no trades are placed.
+Model portfolios only. Not financial advice. No real trades are placed.

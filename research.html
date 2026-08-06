@@ -8,11 +8,10 @@
   <meta name="description" content="A plain-language daily brief: what the market did, what the funds did, the sentiment and news that mattered, and the reasoning behind every call." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="research-page">
-  <div class="noise" aria-hidden="true"></div>
 
   <div class="announcement-bar">
     <span>Full reasoning, no black box.</span>
@@ -22,7 +21,11 @@
   <!-- ===== Header ===== -->
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="LiquidAssets home">
-      <img class="brand-logo" src="logo.png" alt="LiquidAssets" />
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M5 31h26v-6H13.6l3.7-5.5H31v-6H21.3l3.7-5.5H31V1.5C18.8 5.7 10.7 15.6 5 31Z" fill="currentColor"/>
+        <path d="M14.6 23.2h13.8" stroke="currentColor" stroke-width="2" stroke-linecap="square" opacity=".45"/>
+      </svg>
+      <span class="brand-word">liquidassets</span>
     </a>
     <nav class="desktop-nav" aria-label="Primary">
       <a href="index.html">Home</a>
@@ -136,8 +139,12 @@
 
   <!-- ===== Footer ===== -->
   <footer class="site-footer shell">
-    <a class="brand" href="index.html">
-      <img class="brand-logo" src="logo.png" alt="LiquidAssets" />
+    <a class="brand" href="index.html" aria-label="LiquidAssets home">
+      <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M5 31h26v-6H13.6l3.7-5.5H31v-6H21.3l3.7-5.5H31V1.5C18.8 5.7 10.7 15.6 5 31Z" fill="currentColor"/>
+        <path d="M14.6 23.2h13.8" stroke="currentColor" stroke-width="2" stroke-linecap="square" opacity=".45"/>
+      </svg>
+      <span class="brand-word">liquidassets</span>
     </a>
     <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
     <nav class="footer-nav">
@@ -149,7 +156,6 @@
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="vendor/motion.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

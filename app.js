@@ -382,7 +382,7 @@ function renderTape() {
       : (item.entryPrice ? ((item.currentPrice - item.entryPrice) / item.entryPrice) * 100 : 0);
     return `<span class="tape-item"><span>${escapeHtml(item.ticker)}</span><span>${money(price, 2)}</span><b class="${movePct < 0 ? "negative" : ""}">${movePct < 0 ? "▼" : "▲"} ${signed(movePct, 2)}</b></span>`;
   }).join("");
-  marketTape.innerHTML = markup + markup;
+  marketTape.innerHTML = `<div class="tape-group">${markup}</div><div class="tape-group" aria-hidden="true">${markup}</div>`;
 }
 
 // Pulls live quotes from the /api/quotes Pages Function. If it is not there
