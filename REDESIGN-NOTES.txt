@@ -1,0 +1,29 @@
+LIQUIDASSETS — DESIGN REBUILD V2
+
+Direction
+- Rebuilt from the ground up around a restrained product/editorial system.
+- Preserves the existing navigation, copy, fund data, IDs, API hooks and page structure.
+- Removes the glossy AI orb, glass cards, generic gradients and springy hover scaling.
+
+Typography
+- Manrope for display and interface text.
+- IBM Plex Mono for market data, labels and system status.
+- Inter Display / Inter / Arial remain as fallbacks.
+
+Motion
+- Masked headline reveal on load.
+- Staggered content entrance with a deliberate cubic easing curve.
+- Live scan line, confidence fill and status pulse in the decision-engine panel.
+- IntersectionObserver scroll reveals with no bounce or spring animation.
+- Directional hover fills and arrow movement.
+- Reduced-motion preferences are respected.
+
+Files changed
+- index.html: completely rebuilt home hero and agent presentation.
+- styles.css: completely rewritten visual system for all three pages.
+- app.js: removed the network-orb canvas and spring effects; added clean page/reveal motion.
+- fund.html / research.html: new typography loading and shared design system.
+
+Deployment
+Replace the frontend files with this folder. Keep your existing Cloudflare functions/
+directory and environment bindings alongside these files.

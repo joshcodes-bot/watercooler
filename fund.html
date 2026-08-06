@@ -3,19 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#f2efe7" />
-  <title>Watercooler · AI Fund</title>
-  <meta name="description" content="Manage the Watercooler model funds: holdings, target weights, performance against the S&P 500, winners and losers, and the agents to come." />
+  <meta name="theme-color" content="#111111" />
+  <title>LiquidAssets · Funds</title>
+  <meta name="description" content="The LiquidAssets AI fund desk: live holdings, target weights, performance against the S&P 500, winners and losers, and the four agents that run it." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <script>document.documentElement.classList.add("has-motion");</script>
 </head>
-<body>
+<body class="fund-page">
   <div class="noise" aria-hidden="true"></div>
+
+  <div class="announcement-bar">
+    <span>Full reasoning, no black box.</span>
+    <a href="research.html">Read the research <span>↗</span></a>
+  </div>
 
   <!-- ===== Header ===== -->
   <header class="site-header">
-    <a class="brand" href="index.html" aria-label="Watercooler home">
-      <img class="brand-logo" src="logo.png" alt="Watercooler" />
+    <a class="brand" href="index.html" aria-label="LiquidAssets home">
+      <img class="brand-logo" src="logo.png" alt="LiquidAssets" />
     </a>
     <nav class="desktop-nav" aria-label="Primary">
       <a href="index.html">Home</a>
@@ -34,7 +41,7 @@
     <a href="index.html">Home</a>
     <a href="fund.html" aria-current="page">AI Fund</a>
     <a href="research.html">Research</a>
-    <span class="mobile-nav-foot">Ideas become indices.</span>
+    <span class="mobile-nav-foot">AI-run funds.</span>
   </nav>
 
   <!-- ===== Ticker ===== -->
@@ -245,7 +252,7 @@
   <!-- ===== Footer ===== -->
   <footer class="site-footer shell">
     <a class="brand" href="index.html">
-      <img class="brand-logo" src="logo.png" alt="Watercooler" />
+      <img class="brand-logo" src="logo.png" alt="LiquidAssets" />
     </a>
     <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
     <nav class="footer-nav">

@@ -1,5 +1,5 @@
 /* ============================================================
-   Watercooler shared app logic (page-aware)
+   LiquidAssets shared app logic (page-aware)
    Every render helper no-ops if its page elements are absent,
    so the same file safely powers Home, AI Fund and Research.
    ============================================================ */
@@ -21,7 +21,7 @@ const defaultFunds = [
     name: "Whitewater",
     code: "WTR-AG",
     risk: "Aggressive",
-    description: "The highest-risk fund. Backs bold, fast-growing companies for the biggest upside, and cops the swings that come with it.",
+    description: "High-risk, high-velocity alpha generation from market chaos.",
     holdings: [
       { id: uid(), ticker: "RKLB", company: "Rocket Lab", weight: 28, shares: 90, entryPrice: 24.2, currentPrice: 27.6, thesis: "Launch, space systems and long-duration infrastructure growth." },
       { id: uid(), ticker: "NVDA", company: "NVIDIA", weight: 25, shares: 12, entryPrice: 132.5, currentPrice: 146.1, thesis: "Core compute layer for accelerated AI workloads." },
@@ -30,11 +30,11 @@ const defaultFunds = [
     ]
   },
   {
-    id: "tidewater",
-    name: "Tidewater",
+    id: "deepwater",
+    name: "Deepwater",
     code: "WTR-MD",
     risk: "Balanced",
-    description: "The middle-ground fund. A solid core of quality companies with enough spread to keep growing through the noise.",
+    description: "Medium-risk, current-driven institutional growth.",
     holdings: [
       { id: uid(), ticker: "MSFT", company: "Microsoft", weight: 24, shares: 8, entryPrice: 446.2, currentPrice: 462.8, thesis: "Cloud distribution, enterprise software and AI monetisation." },
       { id: uid(), ticker: "GOOGL", company: "Alphabet", weight: 20, shares: 14, entryPrice: 184.7, currentPrice: 191.3, thesis: "Search cash flows funding a broad AI and infrastructure portfolio." },
@@ -47,7 +47,7 @@ const defaultFunds = [
     name: "Stillwater",
     code: "WTR-LO",
     risk: "Defensive",
-    description: "The lowest-risk fund. Steady, reliable earners and broad market cover for a calm, slow-and-steady ride.",
+    description: "Low-risk, high-certainty capital preservation.",
     holdings: [
       { id: uid(), ticker: "VOO", company: "Vanguard S&P 500 ETF", weight: 38, shares: 10, entryPrice: 552.1, currentPrice: 563.4, thesis: "Low-cost US large-cap core exposure." },
       { id: uid(), ticker: "BRK.B", company: "Berkshire Hathaway", weight: 20, shares: 8, entryPrice: 472.2, currentPrice: 479.5, thesis: "Diversified quality assets and disciplined capital allocation." },
@@ -418,14 +418,14 @@ function renderChart() {
   chartSvg.innerHTML = `
     <defs>
       <linearGradient id="fundFill" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="rgba(11,11,11,.14)"/>
-        <stop offset="100%" stop-color="rgba(11,11,11,0)"/>
+        <stop offset="0%" stop-color="#0969ff" stop-opacity="0.22"/>
+        <stop offset="100%" stop-color="#0969ff" stop-opacity="0"/>
       </linearGradient>
     </defs>
     ${renderGrid()}
     <path d="${areaPath(fundSeries, 680, 240)}" fill="url(#fundFill)"></path>
-    <path d="${linePath(benchSeries, 680, 240)}" fill="none" stroke="rgba(11,11,11,.4)" stroke-width="2.5" stroke-dasharray="8 8"></path>
-    <path d="${linePath(fundSeries, 680, 240)}" fill="none" stroke="var(--ink)" stroke-width="3.5"></path>
+    <path d="${linePath(benchSeries, 680, 240)}" fill="none" stroke="rgba(87,101,125,.55)" stroke-width="2.5" stroke-dasharray="8 8"></path>
+    <path d="${linePath(fundSeries, 680, 240)}" fill="none" stroke="var(--accent)" stroke-width="3.5"></path>
   `;
 }
 
@@ -457,7 +457,7 @@ function areaPath(series, width, height) {
 }
 
 function renderGrid() {
-  return [35, 95, 155, 215].map(y => `<line x1="0" y1="${y}" x2="680" y2="${y}" stroke="rgba(11,11,11,.08)" stroke-width="1" />`).join("");
+  return [35, 95, 155, 215].map(y => `<line x1="0" y1="${y}" x2="680" y2="${y}" stroke="rgba(10,13,18,.075)" stroke-width="1" />`).join("");
 }
 
 /* ---------------- Preferences ---------------- */
@@ -505,75 +505,23 @@ function showAllReveals() {
 function observeReveals() {
   const targets = [...document.querySelectorAll(".reveal:not(.visible)")];
   if (!targets.length) return;
-
-  // Preferred path: spring-style entrances via the Motion library.
-  if (document.documentElement.classList.contains("has-motion") && window.Motion?.inView && window.Motion?.animate) {
-    try {
-      motionReveals(targets);
-      return;
-    } catch (error) {
-      document.documentElement.classList.remove("has-motion");
-    }
+  if (!("IntersectionObserver" in window) || reduceMotion()) {
+    targets.forEach(target => target.classList.add("visible"));
+    return;
   }
-
-  // Fallback: CSS transitions driven by IntersectionObserver.
-  document.documentElement.classList.remove("has-motion");
-  if (!("IntersectionObserver" in window)) return showAllReveals();
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("visible");
-        observer.unobserve(entry.target);
-      }
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("visible");
+      observer.unobserve(entry.target);
     });
-  }, { threshold: 0.12 });
+  }, { threshold: 0.12, rootMargin: "0px 0px -7% 0px" });
   targets.forEach(target => observer.observe(target));
-  clearTimeout(observeReveals.fallback);
-  observeReveals.fallback = setTimeout(showAllReveals, 1600);
 }
 
-// One-shot fade-and-rise as each element scrolls into view, staggered by data-delay.
-function motionReveals(targets) {
-  const { inView, animate } = window.Motion;
-  targets.forEach(el => {
-    el.classList.add("visible"); // mark processed so re-renders don't rebind
-    const delay = (Number(el.dataset.delay) || 0) * 0.09;
-    const stop = inView(el, () => {
-      // Fade on a soft ease, movement on a gentle spring for a livelier settle.
-      animate(el, { opacity: 1 }, { duration: 0.5, delay, ease: "easeOut" });
-      animate(el, { y: [32, 0] }, { type: "spring", stiffness: 90, damping: 15, delay });
-      if (typeof stop === "function") stop(); // fire once
-    }, { amount: 0.15 });
-  });
-
-  // Safety net: rescue any element already in the viewport that never animated
-  // (e.g. if the IntersectionObserver behind inView doesn't fire). Off-screen
-  // elements are left alone so they still reveal on scroll.
-  clearTimeout(motionReveals.fallback);
-  motionReveals.fallback = setTimeout(() => {
-    document.querySelectorAll(".reveal").forEach(el => {
-      const rect = el.getBoundingClientRect();
-      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
-      if (inViewport && getComputedStyle(el).opacity === "0") {
-        el.style.opacity = "1";
-        el.style.transform = "none";
-      }
-    });
-  }, 1800);
-}
-
-// Springy lift on hover for fund and agent cards (Motion owns the transform).
-function initHoverSprings() {
-  if (!window.Motion?.animate) return;
-  const { animate } = window.Motion;
-  document.querySelectorAll(".fund-card, .agent-card").forEach(card => {
-    if (card.dataset.hoverBound) return;
-    card.dataset.hoverBound = "1";
-    const lift = card.classList.contains("agent-card") ? -6 : -8;
-    card.addEventListener("pointerenter", () => animate(card, { y: lift, scale: 1.015 }, { type: "spring", stiffness: 260, damping: 20 }));
-    card.addEventListener("pointerleave", () => animate(card, { y: 0, scale: 1 }, { type: "spring", stiffness: 260, damping: 24 }));
-  });
-}
+// Keep hover motion restrained. The visual response is handled in CSS with
+// border, fill and arrow movement instead of bouncy scale effects.
+function initHoverSprings() {}
 
 /* ---------------- Master render ---------------- */
 function render() {
@@ -594,43 +542,28 @@ function render() {
   saveState();
 }
 
-/* ---------------- Hero agent mesh (interactive) ---------------- */
-function initMesh() {
-  const stage = document.querySelector(".hero-visual");
-  const mesh = document.getElementById("mesh");
-  if (stage && mesh) {
-    let frame;
-    stage.addEventListener("pointermove", event => {
-      const rect = stage.getBoundingClientRect();
-      const dx = (event.clientX - rect.left) / rect.width - 0.5;
-      const dy = (event.clientY - rect.top) / rect.height - 0.5;
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        mesh.style.transform = `perspective(900px) rotateY(${dx * 16}deg) rotateX(${-dy * 16}deg)`;
-      });
-    });
-    stage.addEventListener("pointerleave", () => {
-      mesh.style.transform = "perspective(900px) rotateY(0deg) rotateX(0deg)";
-    });
-  }
+/* ---------------- Hero network canvas (interactive) ---------------- */
+function initNet() {
+  cycleCaption();
+}
 
-  // Cycle the caption so it reads like the agents are talking to each other.
+// Cycle the hero caption so it reads like the agents are talking to each other.
+function cycleCaption() {
   const caption = document.getElementById("meshCaption");
-  if (caption) {
-    const lines = [
-      "News → Portfolio: RKLB launch contract logged",
-      "Macro → Portfolio: inflation cooling, rates steady",
-      "Sentiment → Portfolio: AI hardware mood positive",
-      "Portfolio → hold: Whitewater concentration high",
-      "Debate → trim the software overweight? Not yet."
-    ];
-    let i = 0;
-    setInterval(() => {
-      i = (i + 1) % lines.length;
-      caption.style.opacity = "0";
-      setTimeout(() => { caption.textContent = lines[i]; caption.style.opacity = "1"; }, 260);
-    }, 3400);
-  }
+  if (!caption) return;
+  const lines = [
+    "News → Portfolio: RKLB launch contract logged",
+    "Macro → Portfolio: inflation cooling, rates steady",
+    "Sentiment → Portfolio: AI hardware mood positive",
+    "Portfolio → hold: Whitewater concentration high",
+    "Debate → trim the software overweight? Not yet."
+  ];
+  let i = 0;
+  setInterval(() => {
+    i = (i + 1) % lines.length;
+    caption.style.opacity = "0";
+    setTimeout(() => { caption.textContent = lines[i]; caption.style.opacity = "1"; }, 260);
+  }, 3400);
 }
 
 /* ---------------- Navigation (mobile hamburger) ---------------- */
@@ -712,11 +645,28 @@ function briefDayHtml(brief, isLatest) {
   `;
 }
 
+/* ---------------- Page motion ---------------- */
+function initPageMotion() {
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add("is-ready")));
+
+  document.querySelectorAll('a[href$=".html"]').forEach(link => {
+    link.addEventListener("click", event => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || link.target === "_blank") return;
+      event.preventDefault();
+      document.body.classList.add("page-leaving");
+      setTimeout(() => { window.location.href = href; }, 180);
+    });
+  });
+}
+
 /* ---------------- Boot ---------------- */
+initPageMotion();
 if (el("year")) el("year").textContent = new Date().getFullYear();
 initNav();
 initEvents();
-initMesh();
+initNet();
 applyPrefs();
 render();
 observeReveals();

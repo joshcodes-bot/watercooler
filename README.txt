@@ -1,4 +1,4 @@
-Watercooler website
+LiquidAssets website
 ===================
 
 Open index.html in your browser, or serve the folder locally:
@@ -15,7 +15,7 @@ A multi-page site sharing one stylesheet and one script.
 - fund.html             AI Fund: funds, holdings manager, performance vs S&P,
                         winners and losers, the agents, and preferences
 - research.html         Research: a sequential day-by-day market brief
-- styles.css            Shared theme (light "paper" look, bold and industrial)
+- styles.css            Shared AI/institutional theme (dark header and hero, clean dashboard)
 - app.js                Shared, page-aware logic; each renderer no-ops if its
                         page elements are absent, so one file powers all pages
 - logo.png              Brand logo used in the header and footer
@@ -25,8 +25,9 @@ A multi-page site sharing one stylesheet and one script.
 
 Theme
 -----
-The original light "paper" look: cream background, black ink, lime accent, hard
-box-shadows and heavy type. Voice is plain and human. No em dashes.
+A restrained AI/institutional look: black navigation and hero, luminous LiquidAssets blue,
+clean white financial surfaces, precise type and subtle motion. Voice stays plain and human.
+No em dashes.
 
 Features
 --------

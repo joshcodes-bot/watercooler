@@ -3,19 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#f2efe7" />
-  <title>Watercooler · Ideas become indices.</title>
+  <meta name="theme-color" content="#111111" />
+  <title>LiquidAssets · AI-run funds</title>
   <meta name="description" content="An AI-run fund. Four agents research, argue and build a portfolio aimed at beating the S&P 500, using their own modelling and open-source intelligence. Built in Hamilton, New Zealand." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <script>document.documentElement.classList.add("has-motion");</script>
 </head>
-<body>
-  <div class="noise" aria-hidden="true"></div>
+<body class="home-page">
+  <div class="announcement-bar">
+    <span>Full reasoning, no black box.</span>
+    <a href="research.html">Read the research <span>↗</span></a>
+  </div>
 
-  <!-- ===== Header ===== -->
   <header class="site-header">
-    <a class="brand" href="index.html" aria-label="Watercooler home">
-      <img class="brand-logo" src="logo.png" alt="Watercooler" />
+    <a class="brand" href="index.html" aria-label="LiquidAssets home">
+      <img class="brand-logo" src="logo.png" alt="LiquidAssets" />
     </a>
     <nav class="desktop-nav" aria-label="Primary">
       <a href="index.html" aria-current="page">Home</a>
@@ -34,81 +38,92 @@
     <a href="index.html" aria-current="page">Home</a>
     <a href="fund.html">AI Fund</a>
     <a href="research.html">Research</a>
-    <span class="mobile-nav-foot">Ideas become indices.</span>
+    <span class="mobile-nav-foot">AI-run funds.</span>
   </nav>
 
-  <!-- ===== Ticker ===== -->
   <div class="market-tape" aria-label="Live portfolio ticker">
     <div class="tape-track" id="marketTape"></div>
   </div>
 
   <main>
-    <!-- ===== Hero ===== -->
-    <section class="hero shell">
-      <div class="hero-copy">
-        <div class="eyebrow reveal" data-delay="0">AI-run fund lab. Hamilton, New Zealand.</div>
-        <h1 class="reveal" data-delay="1">Let the AI<br /><span class="outline">take the risk.</span></h1>
-        <p class="hero-intro reveal" data-delay="2">
-          Four AI agents research, debate, and run a fund built to beat the S&amp;P 500,
-          off their own open-source analysis.
-        </p>
-        <div class="hero-actions reveal" data-delay="3">
-          <a class="button button-accent" href="fund.html">See the funds</a>
-          <a class="text-link" href="research.html">Read the research <span>↘</span></a>
+    <section class="hero">
+      <div class="hero-rule" aria-hidden="true"></div>
+      <div class="hero-meta hero-enter" data-enter="0">
+        <span>Autonomous fund management</span>
+        <span>Hamilton, New Zealand</span>
+      </div>
+
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <h1 aria-label="AI runs the funds.">
+            <span class="hero-line"><span>AI runs</span></span>
+            <span class="hero-line accent-line"><span>the funds.</span></span>
+          </h1>
+          <p class="hero-intro hero-enter" data-enter="3">
+            LiquidAssets is an autonomous fund manager. Four AI agents research the market,
+            argue it out, and rebalance three live funds every trading day. Full reasoning, no black box.
+          </p>
+          <div class="hero-actions hero-enter" data-enter="4">
+            <a class="button button-accent" href="fund.html"><span>See the funds</span><span aria-hidden="true">↗</span></a>
+            <a class="text-link" href="research.html">Read the research <span>↘</span></a>
+          </div>
+        </div>
+
+        <div class="hero-product hero-enter" data-enter="2" aria-label="LiquidAssets decision engine preview">
+          <div class="product-topline">
+            <span>Decision engine / live cycle</span>
+            <span class="live-state"><i></i>Active</span>
+          </div>
+          <div class="decision-grid">
+            <div class="decision-index">01</div>
+            <div class="decision-body">
+              <span class="decision-agent">News agent</span>
+              <strong>Launch contract strengthens the long-duration thesis.</strong>
+            </div>
+            <div class="decision-score">84</div>
+          </div>
+          <div class="decision-grid">
+            <div class="decision-index">02</div>
+            <div class="decision-body">
+              <span class="decision-agent">Macro agent</span>
+              <strong>Softer inflation leaves room for growth exposure.</strong>
+            </div>
+            <div class="decision-score">71</div>
+          </div>
+          <div class="decision-grid">
+            <div class="decision-index">03</div>
+            <div class="decision-body">
+              <span class="decision-agent">Sentiment agent</span>
+              <strong>AI hardware mood is positive, but no longer euphoric.</strong>
+            </div>
+            <div class="decision-score">67</div>
+          </div>
+          <div class="decision-grid decision-final">
+            <div class="decision-index">04</div>
+            <div class="decision-body">
+              <span class="decision-agent">Portfolio agent</span>
+              <strong>Hold Whitewater. Concentration is high. Do not chase.</strong>
+            </div>
+            <div class="decision-score">Hold</div>
+          </div>
+          <div class="product-footer">
+            <div class="allocation">
+              <span>Confidence</span>
+              <div class="allocation-track"><i></i></div>
+              <strong>78%</strong>
+            </div>
+            <p id="meshCaption">News → Portfolio: RKLB launch contract logged</p>
+          </div>
+          <div class="product-scan" aria-hidden="true"></div>
         </div>
       </div>
 
-      <div class="hero-visual reveal" data-delay="1" aria-label="Live view of the four AI agents debating and trading">
-        <div class="visual-grid"></div>
-        <svg class="mesh" id="mesh" viewBox="0 0 400 400" aria-hidden="true">
-          <g class="mesh-spin">
-            <circle cx="200" cy="200" r="150" stroke-dasharray="4 10" />
-            <circle class="mesh-spin-ring" cx="200" cy="200" r="118" stroke-dasharray="2 16" />
-          </g>
-          <g class="mesh-links">
-            <line x1="200" y1="200" x2="200" y2="70" />
-            <line x1="200" y1="200" x2="330" y2="200" />
-            <line x1="200" y1="200" x2="200" y2="330" />
-            <line x1="200" y1="200" x2="70" y2="200" />
-            <polygon class="mesh-mesh" points="200,70 330,200 200,330 70,200" fill="none" />
-          </g>
-          <g class="mesh-pulses">
-            <circle class="pulse" r="4"><animateMotion dur="2.2s" repeatCount="indefinite" path="M200,200 L200,70" /></circle>
-            <circle class="pulse" r="4"><animateMotion dur="2.6s" begin="0.4s" repeatCount="indefinite" path="M330,200 L200,200" /></circle>
-            <circle class="pulse" r="4"><animateMotion dur="2.4s" begin="0.9s" repeatCount="indefinite" path="M200,200 L200,330" /></circle>
-            <circle class="pulse" r="4"><animateMotion dur="2.8s" begin="1.3s" repeatCount="indefinite" path="M70,200 L200,200" /></circle>
-            <circle class="pulse alt" r="3.2"><animateMotion dur="3.2s" begin="0.2s" repeatCount="indefinite" path="M200,70 L330,200" /></circle>
-            <circle class="pulse alt" r="3.2"><animateMotion dur="3.4s" begin="1.1s" repeatCount="indefinite" path="M200,330 L70,200" /></circle>
-          </g>
-          <g class="mesh-nodes">
-            <g class="node hub">
-              <circle cx="200" cy="200" r="34" />
-              <text class="node-label hub-label" x="200" y="205">WTR</text>
-            </g>
-            <g class="node agent">
-              <circle cx="200" cy="70" r="26" />
-              <text class="node-label" x="200" y="38">NEWS</text>
-            </g>
-            <g class="node agent">
-              <circle cx="330" cy="200" r="26" />
-              <text class="node-label" x="330" y="244">MACRO</text>
-            </g>
-            <g class="node agent">
-              <circle cx="200" cy="330" r="26" />
-              <text class="node-label" x="200" y="374">SENTIMENT</text>
-            </g>
-            <g class="node agent">
-              <circle cx="70" cy="200" r="26" />
-              <text class="node-label" x="70" y="244">PORTFOLIO</text>
-            </g>
-          </g>
-        </svg>
-        <div class="mesh-caption" id="meshCaption">News → Portfolio: RKLB launch contract logged</div>
+      <div class="hero-foot hero-enter" data-enter="5">
+        <span>Research</span><span>Debate</span><span>Rebalance</span><span>Explain</span>
       </div>
     </section>
 
-    <!-- ===== Metric strip ===== -->
-    <section class="shell section-tight">
+    <section class="metrics-section shell section-tight">
       <div class="metric-strip reveal" aria-label="Portfolio summary">
         <article>
           <span class="metric-label">Funds</span>
@@ -129,30 +144,63 @@
       </div>
     </section>
 
-    <!-- ===== Funds ===== -->
-    <section class="shell section">
+    <section class="how-section shell section">
+      <div class="section-heading reveal">
+        <div>
+          <div class="eyebrow">How it works</div>
+          <h2>Four agents,<br />one decision.</h2>
+        </div>
+        <p>Each agent reads its corner of the market. The portfolio agent weighs it all up and rebalances the funds every trading day, and explains every call.</p>
+      </div>
+      <div class="agents-grid">
+        <article class="agent-card reveal" data-delay="0">
+          <span class="agent-number">01</span>
+          <div><span class="chip">News</span><h4>News Agent</h4></div>
+          <p>Reads company news, earnings and the market events that move a stock.</p>
+          <span class="agent-arrow">↗</span>
+        </article>
+        <article class="agent-card reveal" data-delay="1">
+          <span class="agent-number">02</span>
+          <div><span class="chip">Macro</span><h4>Macro Agent</h4></div>
+          <p>Watches rates, inflation, jobs and growth, and what they mean for the funds.</p>
+          <span class="agent-arrow">↗</span>
+        </article>
+        <article class="agent-card reveal" data-delay="2">
+          <span class="agent-number">03</span>
+          <div><span class="chip">Sentiment</span><h4>Sentiment Agent</h4></div>
+          <p>Reads the mood around companies, sectors and themes.</p>
+          <span class="agent-arrow">↗</span>
+        </article>
+        <article class="agent-card reveal" data-delay="3">
+          <span class="agent-number">04</span>
+          <div><span class="chip">Portfolio</span><h4>Portfolio Agent</h4></div>
+          <p>Weighs it all up and decides what to add, trim, hold or cut, and why.</p>
+          <span class="agent-arrow">↗</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="funds-section shell section">
       <div class="section-heading reveal">
         <div>
           <div class="eyebrow">The funds</div>
-          <h2>Three funds,<br />three speeds.</h2>
+          <h2>Three funds,<br />three risk levels.</h2>
         </div>
+        <p>One decision system, expressed through three different mandates. Choose the level of risk, then inspect every position and every reason.</p>
       </div>
       <div class="fund-grid" id="fundGrid" data-selectable="false"></div>
     </section>
-
   </main>
 
-  <!-- ===== Wave ===== -->
   <div class="wave-band" aria-hidden="true">
     <div class="wave-layer wave-3"></div>
     <div class="wave-layer wave-2"></div>
     <div class="wave-layer wave-1"></div>
   </div>
 
-  <!-- ===== Footer ===== -->
   <footer class="site-footer shell">
     <a class="brand" href="index.html">
-      <img class="brand-logo" src="logo.png" alt="Watercooler" />
+      <img class="brand-logo" src="logo.png" alt="LiquidAssets" />
     </a>
     <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
     <nav class="footer-nav">
