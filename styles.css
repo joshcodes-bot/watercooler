@@ -351,7 +351,7 @@ body.is-ready .hero-product { animation: product-open .95s .36s var(--ease) forw
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 500px;
+  max-height: 300px;
   display: block;
   filter: drop-shadow(0 28px 45px rgba(10, 13, 18, .20));
   animation: bullbear-float 6s ease-in-out infinite;
@@ -363,7 +363,7 @@ body.is-ready .hero-product { animation: product-open .95s .36s var(--ease) forw
 }
 @media (max-width: 1100px) {
   .hero-visual { min-height: 0; margin-bottom: 60px; }
-  .hero-bullbear { max-height: 380px; }
+  .hero-bullbear { max-height: 240px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-bullbear { animation: none; }
