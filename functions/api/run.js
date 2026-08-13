@@ -256,10 +256,12 @@ function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) 
   lines.push("  - Keep most weight moves modest; a larger shift is fine only when a clear catalyst justifies it.");
   lines.push("  - Preserve winners and let them run; trim or close only on a genuine thesis break or risk flag, not on noise.");
 
-  lines.push("\nRETURN TARGETS (manage toward the mandate, do not chase headlines):");
-  lines.push("  - Whitewater (WTR-AG, Aggressive): high growth, aim well above the market, tolerate volatility.");
-  lines.push("  - Tidewater (WTR-MD, Balanced): steady compounding, beat the index with controlled drawdown.");
-  lines.push("  - Stillwater (WTR-LO, Defensive): capital preservation first, low drawdown, modest steady gains.");
+  lines.push("\nMANDATES AND HOUSE FLAVOUR (these are tilts to lean into, not a script - you are AI-controlled, so use your own research to choose the actual names and back each with a reason from the desk notes):");
+  lines.push("  - Whitewater (WTR-AG, Aggressive): high growth, aim well above the market, tolerate volatility. This is where we play with the big high-velocity innovators - space and frontier names in the spirit of ASTS and RKLB, AI and disruptive growth. Swing for it.");
+  lines.push("  - Tidewater (WTR-MD, Balanced): steady compounding with controlled drawdown. Lean stable: broad index funds and quality healthcare, durable compounders. Stability comes first here.");
+  lines.push("  - Stillwater (WTR-LO, Defensive): capital preservation first, low drawdown, modest steady gains. Lean defensive: broad index and bond funds, staples, gold, low-volatility quality.");
+  lines.push("  - Across the whole book, favour industries that lean toward innovation: space, AI, tech, construction and healthcare. Keep a genuine mix and do not stack the same mega-cap in every fund; each fund should have its own character.");
+  lines.push("  - Keep 4 to 8 holdings per fund. Prefer real conviction picks over filler.");
   lines.push("\nCURRENT FUNDS AND HOLDINGS:");
   for (const f of funds) {
     lines.push(`\n${f.name} (${f.code}) - ${f.risk} - ${f.description}`);
