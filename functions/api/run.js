@@ -80,7 +80,11 @@ export async function onRequestPost(context) {
         const ticker = String(h.ticker || "").toUpperCase().trim();
         if (!ticker) continue;
         const price = quotes[ticker]?.price || prev[ticker]?.current_price || 0;
-        const costBasis = prev[ticker] ? prev[ticker].cost_basis : (price || 0); // keep basis if held
+        if (!price) continue; // never store a position with no usable price (would poison returns)
+        // Keep the basis of a continuing position, but heal a missing/zero basis to the first real price
+        // so returns start from where the AI actually opened it, not from 0.
+        const prevBasis = prev[ticker]?.cost_basis;
+        const costBasis = (prevBasis && prevBasis > 0) ? prevBasis : price;
         const weight = Number(h.weight) || 0;
         const shares = price ? (weight / 100 * capital) / price : 0;
         inserts.push(env.DB.prepare(
@@ -214,8 +218,10 @@ async function portfolioAgent(env, model, funds, holdingsByFund, quotes, researc
     "You are the Portfolio agent and head of desk at Watercooler, an AI fund manager running model " +
     "portfolios only - no real trades are placed. Three research agents just reported: News, Macro and " +
     "Sentiment. Weigh their notes against each fund's risk mandate and set today's allocations, then write " +
-    "the public daily brief. Be decisive and plain-spoken, a little Kiwi in tone. Explain every call in one " +
-    "sentence. Never invent prices; use the ones provided. Do not use em dashes anywhere.";
+    "the public daily brief. You run a CONTINUING book, not a blank slate each day: you are judged on steady " +
+    "returns over time, so prize conviction and low turnover. Default to holding good positions. Be decisive " +
+    "and plain-spoken, a little Kiwi in tone. Explain every call in one sentence. Never invent prices; use the " +
+    "ones provided. Do not use em dashes anywhere.";
   const user = buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital);
   return callClaudeJson(env, model, system, user);
 }
@@ -228,6 +234,17 @@ function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) 
   lines.push("\n[Sentiment agent]\n" + (research.sentiment || "(none)"));
 
   lines.push(`\nEach fund has notional capital of $${capital}. Set a target weight % per holding (roughly summing to 100% per fund). Keep 4 to 8 holdings per fund, real tickers only. Respect each fund's risk mandate above all.`);
+
+  lines.push("\nCONTINUITY RULES (this is an existing book, not a fresh build):");
+  lines.push("  - Default to holding. Only act when a desk note gives a real reason.");
+  lines.push("  - At most about 2 changes per fund this run (an open, a close, or a meaningful trim). Do not rebuild a fund from scratch.");
+  lines.push("  - Keep most weight moves modest; a larger shift is fine only when a clear catalyst justifies it.");
+  lines.push("  - Preserve winners and let them run; trim or close only on a genuine thesis break or risk flag, not on noise.");
+
+  lines.push("\nRETURN TARGETS (manage toward the mandate, do not chase headlines):");
+  lines.push("  - Whitewater (WTR-AG, Aggressive): high growth, aim well above the market, tolerate volatility.");
+  lines.push("  - Tidewater (WTR-MD, Balanced): steady compounding, beat the index with controlled drawdown.");
+  lines.push("  - Stillwater (WTR-LO, Defensive): capital preservation first, low drawdown, modest steady gains.");
   lines.push("\nCURRENT FUNDS AND HOLDINGS:");
   for (const f of funds) {
     lines.push(`\n${f.name} (${f.code}) - ${f.risk} - ${f.description}`);
