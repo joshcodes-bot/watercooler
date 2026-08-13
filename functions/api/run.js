@@ -68,6 +68,17 @@ export async function onRequestPost(context) {
     // 4. Portfolio agent - the only one that must return strict JSON.
     const decision = await portfolioAgent(env, model, funds, holdingsByFund, quotes, research, capital);
 
+    // 4b. The AI can open tickers we never priced (a fresh build starts from an empty table, so
+    // step 2 priced nothing, and any brand-new pick is unpriced too). Fetch quotes for those now,
+    // otherwise every new position is dropped by the price guard below and the funds stay empty.
+    const decided = [...new Set(
+      (decision.funds || []).flatMap(f => (f.holdings || [])
+        .map(h => String(h.ticker || "").toUpperCase().trim()))
+        .filter(Boolean)
+    )];
+    const unpriced = decided.filter(t => !quotes[t]);
+    if (unpriced.length) Object.assign(quotes, await fetchQuotes(unpriced, env.FINNHUB_API_KEY));
+
     // 5. Apply the decision to D1
     const now = new Date().toISOString();
     for (const fd of decision.funds || []) {
