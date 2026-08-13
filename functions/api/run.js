@@ -1,20 +1,27 @@
 /**
  * POST /api/run - runs one AI decision cycle for all house funds.
  *
- *   prices (Finnhub)  +  recent news  ->  Claude decides allocations + writes a brief
- *   -> holdings + brief saved to D1 -> the site reads the new state from /api/funds.
+ * This is a real multi-agent pipeline, not one prompt wearing four hats:
+ *
+ *   prices + news (Finnhub)
+ *     -> News agent, Macro agent, Sentiment agent  (run in parallel, each writes a note)
+ *     -> Portfolio agent  (reads the three notes + live prices, decides allocations + brief)
+ *     -> holdings + brief saved to D1 -> the site reads the new state from /api/funds.
+ *
+ * Only the Portfolio agent has to return strict JSON. The three research agents return
+ * plain text, so a wobble in one of them can never break the parse or the run.
  *
  * Protected by a shared token so randoms can't trigger it (and rack up API cost):
  *   send header  x-run-token: <RUN_TOKEN>
  *
  * Required env (set in the Cloudflare Pages dashboard):
- *   DB               D1 binding
+ *   DB                 D1 binding
  *   ANTHROPIC_API_KEY  secret
  *   FINNHUB_API_KEY    secret (already used by /api/quotes)
  *   RUN_TOKEN          secret - any long random string you choose
  * Optional env:
- *   CLAUDE_MODEL     defaults to "claude-haiku-4-5" (cheapest); set "claude-opus-4-8" for max quality
- *   FUND_CAPITAL     notional $ per fund, defaults to 100000
+ *   CLAUDE_MODEL       defaults to "claude-haiku-4-5" (cheapest); set "claude-opus-4-8" for max quality
+ *   FUND_CAPITAL       notional $ per fund, defaults to 100000
  */
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -38,20 +45,24 @@ export async function onRequestPost(context) {
     const holdingsByFund = {};
     for (const h of holdings) (holdingsByFund[h.fund_code] ||= []).push(h);
 
-    // 2. Live prices + 3. recent news
+    // 2. Live signals: prices for held names, macro ETFs for the macro read, and recent news.
     const tickers = [...new Set(holdings.map(h => h.ticker))];
-    const quotes = await fetchQuotes(tickers, env.FINNHUB_API_KEY);
-    const news = await fetchNews(tickers.slice(0, 8), env.FINNHUB_API_KEY);
+    const [quotes, macro, news] = await Promise.all([
+      fetchQuotes(tickers, env.FINNHUB_API_KEY),
+      fetchQuotes(MACRO_TICKERS, env.FINNHUB_API_KEY),
+      fetchNews(tickers.slice(0, 8), env.FINNHUB_API_KEY)
+    ]);
 
-    // 4. Ask Claude to run the four agents and decide
-    const system =
-      "You are Watercooler, an AI fund manager running four research agents: News, Macro, " +
-      "Sentiment and Portfolio. You manage model portfolios only - no real trades are placed. " +
-      "Be decisive, plain-spoken and a little Kiwi in tone. Explain every call in one sentence. " +
-      "Never invent prices; use the ones provided. Stay true to each fund's risk mandate. " +
-      "Do not use em dashes anywhere in your writing.";
-    const user = buildPrompt(funds, holdingsByFund, quotes, news, capital);
-    const decision = await callClaude(env, model, system, user);
+    // 3. Research agents - three specialists, run in parallel, each returns a short note.
+    const [newsNote, macroNote, sentimentNote] = await Promise.all([
+      newsAgent(env, model, news, tickers),
+      macroAgent(env, model, macro),
+      sentimentAgent(env, model, holdings, quotes)
+    ]);
+    const research = { news: newsNote, macro: macroNote, sentiment: sentimentNote };
+
+    // 4. Portfolio agent - the only one that must return strict JSON.
+    const decision = await portfolioAgent(env, model, funds, holdingsByFund, quotes, research, capital);
 
     // 5. Apply the decision to D1
     const now = new Date().toISOString();
@@ -92,7 +103,7 @@ export async function onRequestPost(context) {
 
     // 7. Log the run
     await env.DB.prepare("INSERT INTO runs (started_at, status, model, note) VALUES (?, ?, ?, ?)")
-      .bind(startedAt, "ok", model, `${tickers.length} tickers priced`).run();
+      .bind(startedAt, "ok", model, `${tickers.length} tickers priced, 4 agents`).run();
 
     return json({ ok: true, at: now, model, fundsUpdated: (decision.funds || []).length });
   } catch (error) {
@@ -105,6 +116,16 @@ export async function onRequestPost(context) {
 }
 
 /* ---------------- Signals ---------------- */
+
+// A compact palette of ETFs that stands in for "the market" so the Macro agent
+// reasons over real moves: broad indices, small caps, key sectors, bonds and gold.
+const MACRO_TICKERS = ["SPY", "QQQ", "DIA", "IWM", "XLK", "XLE", "XLF", "TLT", "GLD"];
+const MACRO_LABELS = {
+  SPY: "S&P 500", QQQ: "Nasdaq 100", DIA: "Dow", IWM: "Small caps",
+  XLK: "Tech sector", XLE: "Energy sector", XLF: "Financials sector",
+  TLT: "Long bonds", GLD: "Gold"
+};
+
 async function fetchQuotes(symbols, key) {
   const out = {};
   if (!key) return out;
@@ -135,24 +156,92 @@ async function fetchNews(symbols, key) {
   return out.slice(0, 20);
 }
 
-/* ---------------- Prompt ---------------- */
-function buildPrompt(funds, holdingsByFund, quotes, news, capital) {
+/* ---------------- Research agents ---------------- */
+// Shared voice for the research notes. They write for the Portfolio agent, not the public,
+// so they stay short and signal-dense. No em dashes anywhere (house style).
+const HOUSE_STYLE = "Be plain-spoken, decisive and a little Kiwi. Never invent numbers; use only what is given. Do not use em dashes anywhere.";
+
+async function newsAgent(env, model, news, tickers) {
+  const body = news.length ? news.map(n => `- ${n}`).join("\n") : "(no fresh headlines available)";
+  const system =
+    "You are the News agent on an AI fund desk. From the headlines, pull out only what could move the " +
+    "held names or their sectors: catalysts, risks, earnings, guidance, deals. " + HOUSE_STYLE;
+  const user =
+    `Held tickers: ${tickers.join(", ") || "(none yet)"}\n\nRecent headlines:\n${body}\n\n` +
+    "Write 3 to 5 short bullet points on what actually matters for these positions today. If nothing is material, say so.";
+  return research(env, model, system, user);
+}
+
+async function macroAgent(env, model, macro) {
+  const rows = MACRO_TICKERS
+    .filter(t => macro[t])
+    .map(t => `  ${MACRO_LABELS[t]} (${t}): ${macro[t].price}${Number.isFinite(macro[t].changePct) ? ` (${macro[t].changePct.toFixed(2)}% today)` : ""}`);
+  const body = rows.length ? rows.join("\n") : "(macro quotes unavailable)";
+  const system =
+    "You are the Macro agent on an AI fund desk. Read the market-wide tape: risk-on or risk-off, which " +
+    "sectors lead or lag, and what bonds (TLT) and gold (GLD) imply about rates and fear. " + HOUSE_STYLE;
+  const user = `Today's macro tape:\n${body}\n\nWrite 3 to 4 short bullets on the regime and what it favours or punishes right now.`;
+  return research(env, model, system, user);
+}
+
+async function sentimentAgent(env, model, holdings, quotes) {
+  const rows = holdings.map(h => {
+    const q = quotes[h.ticker];
+    const move = q && Number.isFinite(q.changePct) ? `${q.changePct.toFixed(2)}%` : "n/a";
+    return `  ${h.ticker}: ${move} today`;
+  });
+  const body = rows.length ? [...new Set(rows)].join("\n") : "(no positions yet)";
+  const system =
+    "You are the Sentiment agent on an AI fund desk. From today's price action across the held names, " +
+    "read momentum and crowd mood: broad strength, broad flush, or rotation between names. " + HOUSE_STYLE;
+  const user = `Today's moves in the held names:\n${body}\n\nWrite 2 to 4 short bullets on momentum and mood. Flag anything overheated or capitulating.`;
+  return research(env, model, system, user);
+}
+
+// Runs one research agent. Never throws: a failed specialist degrades to a note, not a dead run.
+async function research(env, model, system, user) {
+  try {
+    const text = await askClaude(env, model, system, user, 700);
+    return text.trim() || "(no read)";
+  } catch (error) {
+    return `(agent unavailable: ${String(error).slice(0, 120)})`;
+  }
+}
+
+/* ---------------- Portfolio agent ---------------- */
+async function portfolioAgent(env, model, funds, holdingsByFund, quotes, research, capital) {
+  const system =
+    "You are the Portfolio agent and head of desk at Watercooler, an AI fund manager running model " +
+    "portfolios only - no real trades are placed. Three research agents just reported: News, Macro and " +
+    "Sentiment. Weigh their notes against each fund's risk mandate and set today's allocations, then write " +
+    "the public daily brief. Be decisive and plain-spoken, a little Kiwi in tone. Explain every call in one " +
+    "sentence. Never invent prices; use the ones provided. Do not use em dashes anywhere.";
+  const user = buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital);
+  return callClaudeJson(env, model, system, user);
+}
+
+function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) {
   const lines = [];
-  lines.push(`Each fund has notional capital of $${capital}. Set a target weight % per holding (roughly summing to 100% per fund). Keep 4 to 8 holdings per fund, real tickers only.`);
+  lines.push("RESEARCH DESK NOTES (from your three agents):");
+  lines.push("\n[News agent]\n" + (research.news || "(none)"));
+  lines.push("\n[Macro agent]\n" + (research.macro || "(none)"));
+  lines.push("\n[Sentiment agent]\n" + (research.sentiment || "(none)"));
+
+  lines.push(`\nEach fund has notional capital of $${capital}. Set a target weight % per holding (roughly summing to 100% per fund). Keep 4 to 8 holdings per fund, real tickers only. Respect each fund's risk mandate above all.`);
   lines.push("\nCURRENT FUNDS AND HOLDINGS:");
   for (const f of funds) {
     lines.push(`\n${f.name} (${f.code}) - ${f.risk} - ${f.description}`);
-    for (const h of (holdingsByFund[f.code] || [])) {
+    const held = holdingsByFund[f.code] || [];
+    if (!held.length) lines.push("  (empty - build this fund from scratch)");
+    for (const h of held) {
       const q = quotes[h.ticker];
       const price = q ? q.price : h.current_price;
       const move = q && Number.isFinite(q.changePct) ? ` (${q.changePct.toFixed(2)}% today)` : "";
       lines.push(`  ${h.ticker} ${h.company || ""} | target ${h.weight}% | cost ${h.cost_basis} | now ${price}${move}`);
     }
   }
-  lines.push("\nRECENT NEWS HEADLINES:");
-  for (const n of news) lines.push(`  - ${n}`);
-  if (!news.length) lines.push("  (no fresh headlines available)");
-  lines.push("\nDecide each fund's holdings for today - hold, add, trim, open or close - then write a short plain-language daily brief.");
+
+  lines.push("\nDecide each fund's holdings for today - hold, add, trim, open or close - grounded in the desk notes, then write a short plain-language daily brief.");
   lines.push('\nReturn ONLY a JSON object, no markdown and no prose, with exactly this shape:');
   lines.push('{');
   lines.push('  "marketOverview": "one or two sentences on the day",');
@@ -165,7 +254,7 @@ function buildPrompt(funds, holdingsByFund, quotes, news, capital) {
 }
 
 /* ---------------- Claude ---------------- */
-async function callClaude(env, model, system, user) {
+async function askClaude(env, model, system, user, maxTokens) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -175,7 +264,7 @@ async function callClaude(env, model, system, user) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 8000,
+      max_tokens: maxTokens || 4000,
       // No thinking config: on Haiku/Opus 4.8 this runs without thinking (fast + cheap);
       // it also keeps the request valid across models that configure thinking differently.
       system,
@@ -190,7 +279,12 @@ async function callClaude(env, model, system, user) {
   const data = await res.json();
   if (data.stop_reason === "refusal") throw new Error("Model declined the request");
   const block = (data.content || []).find(b => b.type === "text");
-  return parseJson(block ? block.text : "");
+  return block ? block.text : "";
+}
+
+async function callClaudeJson(env, model, system, user) {
+  const text = await askClaude(env, model, system, user, 8000);
+  return parseJson(text);
 }
 
 function parseJson(text) {
