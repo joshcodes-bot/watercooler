@@ -645,30 +645,6 @@ function briefDayHtml(brief, isLatest) {
   `;
 }
 
-/* ---------------- Hero parallax ---------------- */
-function initHeroParallax() {
-  const img = document.querySelector(".hero-bullbear");
-  const hero = document.querySelector(".hero");
-  if (!img || !hero || reduceMotion()) return;
-
-  const max = 26; // px of drift at the edges
-  let raf = 0;
-  const onMove = event => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      const rect = hero.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - 0.5;  // -0.5 .. 0.5
-      const y = (event.clientY - rect.top) / rect.height - 0.5;
-      img.style.transform = `translate(${(-x * max).toFixed(1)}px, ${(-y * max).toFixed(1)}px)`;
-    });
-  };
-  const reset = () => { img.style.transform = "translate(0px, 0px)"; };
-
-  hero.addEventListener("mousemove", onMove);
-  hero.addEventListener("mouseleave", reset);
-}
-
 /* ---------------- Page motion ---------------- */
 function initPageMotion() {
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add("is-ready")));
@@ -691,7 +667,6 @@ if (el("year")) el("year").textContent = new Date().getFullYear();
 initNav();
 initEvents();
 initNet();
-initHeroParallax();
 applyPrefs();
 render();
 observeReveals();
