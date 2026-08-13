@@ -248,7 +248,8 @@ function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) 
   lines.push("\n[Macro agent]\n" + (research.macro || "(none)"));
   lines.push("\n[Sentiment agent]\n" + (research.sentiment || "(none)"));
 
-  lines.push(`\nEach fund has notional capital of $${capital}. Set a target weight % per holding (roughly summing to 100% per fund). Keep 4 to 8 holdings per fund, real tickers only. Respect each fund's risk mandate above all.`);
+  lines.push(`\nEach fund has notional capital of $${capital}. Set a target weight % per holding (roughly summing to 100% per fund). Hold 8 to 9 positions per fund, never fewer than 8, real tickers only. Respect each fund's risk mandate above all.`);
+  lines.push("This runs at the market close: judge each existing position on its return since we opened it (shown per holding), let winners run, trim names that have got extended, and cut ones whose thesis has broken. Base today's decisions on that performance.");
 
   lines.push("\nCONTINUITY RULES (this is an existing book, not a fresh build):");
   lines.push("  - Default to holding. Only act when a desk note gives a real reason.");
@@ -261,7 +262,7 @@ function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) 
   lines.push("  - Tidewater (WTR-MD, Balanced): steady compounding with controlled drawdown. Lean stable: broad index funds and quality healthcare, durable compounders. Stability comes first here.");
   lines.push("  - Stillwater (WTR-LO, Defensive): capital preservation first, low drawdown, modest steady gains. Lean defensive: broad index and bond funds, staples, gold, low-volatility quality.");
   lines.push("  - Across the whole book, favour industries that lean toward innovation: space, AI, tech, construction and healthcare. Keep a genuine mix and do not stack the same mega-cap in every fund; each fund should have its own character.");
-  lines.push("  - Keep 4 to 8 holdings per fund. Prefer real conviction picks over filler.");
+  lines.push("  - Hold 8 to 9 positions per fund (never fewer than 8). Prefer real conviction picks over filler.");
   lines.push("\nCURRENT FUNDS AND HOLDINGS:");
   for (const f of funds) {
     lines.push(`\n${f.name} (${f.code}) - ${f.risk} - ${f.description}`);
@@ -271,7 +272,8 @@ function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) 
       const q = quotes[h.ticker];
       const price = q ? q.price : h.current_price;
       const move = q && Number.isFinite(q.changePct) ? ` (${q.changePct.toFixed(2)}% today)` : "";
-      lines.push(`  ${h.ticker} ${h.company || ""} | target ${h.weight}% | cost ${h.cost_basis} | now ${price}${move}`);
+      const ret = h.cost_basis ? ((price - h.cost_basis) / h.cost_basis * 100) : 0;
+      lines.push(`  ${h.ticker} ${h.company || ""} | target ${h.weight}% | cost ${h.cost_basis} | now ${price}${move} | return ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% since we opened it`);
     }
   }
 

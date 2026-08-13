@@ -23,10 +23,10 @@ const defaultFunds = [
     risk: "Aggressive",
     description: "High-risk, high-velocity alpha generation from market chaos.",
     holdings: [
-      { id: uid(), ticker: "RKLB", company: "Rocket Lab", weight: 28, shares: 90, entryPrice: 24.2, currentPrice: 27.6, thesis: "Launch, space systems and long-duration infrastructure growth." },
-      { id: uid(), ticker: "NVDA", company: "NVIDIA", weight: 25, shares: 12, entryPrice: 132.5, currentPrice: 146.1, thesis: "Core compute layer for accelerated AI workloads." },
-      { id: uid(), ticker: "PLTR", company: "Palantir", weight: 20, shares: 35, entryPrice: 92.8, currentPrice: 98.4, thesis: "Operational AI deployment with strong government and enterprise positioning." },
-      { id: uid(), ticker: "TSLA", company: "Tesla", weight: 14, shares: 7, entryPrice: 301.4, currentPrice: 285.9, thesis: "High-variance autonomy, energy and manufacturing optionality." }
+      { id: uid(), ticker: "RKLB", company: "Rocket Lab", weight: 28, shares: 90, entryPrice: 24.2, currentPrice: 24.2, thesis: "Launch, space systems and long-duration infrastructure growth." },
+      { id: uid(), ticker: "NVDA", company: "NVIDIA", weight: 25, shares: 12, entryPrice: 132.5, currentPrice: 132.5, thesis: "Core compute layer for accelerated AI workloads." },
+      { id: uid(), ticker: "PLTR", company: "Palantir", weight: 20, shares: 35, entryPrice: 92.8, currentPrice: 92.8, thesis: "Operational AI deployment with strong government and enterprise positioning." },
+      { id: uid(), ticker: "TSLA", company: "Tesla", weight: 14, shares: 7, entryPrice: 301.4, currentPrice: 301.4, thesis: "High-variance autonomy, energy and manufacturing optionality." }
     ]
   },
   {
@@ -36,10 +36,10 @@ const defaultFunds = [
     risk: "Balanced",
     description: "Medium-risk, current-driven institutional growth.",
     holdings: [
-      { id: uid(), ticker: "MSFT", company: "Microsoft", weight: 24, shares: 8, entryPrice: 446.2, currentPrice: 462.8, thesis: "Cloud distribution, enterprise software and AI monetisation." },
-      { id: uid(), ticker: "GOOGL", company: "Alphabet", weight: 20, shares: 14, entryPrice: 184.7, currentPrice: 191.3, thesis: "Search cash flows funding a broad AI and infrastructure portfolio." },
-      { id: uid(), ticker: "AMZN", company: "Amazon", weight: 20, shares: 11, entryPrice: 207.4, currentPrice: 214.2, thesis: "AWS, logistics scale and operating leverage." },
-      { id: uid(), ticker: "V", company: "Visa", weight: 15, shares: 9, entryPrice: 330.5, currentPrice: 338.1, thesis: "Global payment rails with resilient economics." }
+      { id: uid(), ticker: "MSFT", company: "Microsoft", weight: 24, shares: 8, entryPrice: 446.2, currentPrice: 446.2, thesis: "Cloud distribution, enterprise software and AI monetisation." },
+      { id: uid(), ticker: "GOOGL", company: "Alphabet", weight: 20, shares: 14, entryPrice: 184.7, currentPrice: 184.7, thesis: "Search cash flows funding a broad AI and infrastructure portfolio." },
+      { id: uid(), ticker: "AMZN", company: "Amazon", weight: 20, shares: 11, entryPrice: 207.4, currentPrice: 207.4, thesis: "AWS, logistics scale and operating leverage." },
+      { id: uid(), ticker: "V", company: "Visa", weight: 15, shares: 9, entryPrice: 330.5, currentPrice: 330.5, thesis: "Global payment rails with resilient economics." }
     ]
   },
   {
@@ -49,10 +49,10 @@ const defaultFunds = [
     risk: "Defensive",
     description: "Low-risk, high-certainty capital preservation.",
     holdings: [
-      { id: uid(), ticker: "VOO", company: "Vanguard S&P 500 ETF", weight: 38, shares: 10, entryPrice: 552.1, currentPrice: 563.4, thesis: "Low-cost US large-cap core exposure." },
-      { id: uid(), ticker: "BRK.B", company: "Berkshire Hathaway", weight: 20, shares: 8, entryPrice: 472.2, currentPrice: 479.5, thesis: "Diversified quality assets and disciplined capital allocation." },
-      { id: uid(), ticker: "COST", company: "Costco", weight: 15, shares: 3, entryPrice: 940.3, currentPrice: 956.7, thesis: "Recurring membership economics and resilient consumer loyalty." },
-      { id: uid(), ticker: "BND", company: "Vanguard Total Bond Market ETF", weight: 15, shares: 20, entryPrice: 73.1, currentPrice: 73.6, thesis: "Broad fixed-income ballast." }
+      { id: uid(), ticker: "VOO", company: "Vanguard S&P 500 ETF", weight: 38, shares: 10, entryPrice: 552.1, currentPrice: 552.1, thesis: "Low-cost US large-cap core exposure." },
+      { id: uid(), ticker: "BRK.B", company: "Berkshire Hathaway", weight: 20, shares: 8, entryPrice: 472.2, currentPrice: 472.2, thesis: "Diversified quality assets and disciplined capital allocation." },
+      { id: uid(), ticker: "COST", company: "Costco", weight: 15, shares: 3, entryPrice: 940.3, currentPrice: 940.3, thesis: "Recurring membership economics and resilient consumer loyalty." },
+      { id: uid(), ticker: "BND", company: "Vanguard Total Bond Market ETF", weight: 15, shares: 20, entryPrice: 73.1, currentPrice: 73.1, thesis: "Broad fixed-income ballast." }
     ]
   }
 ];
@@ -645,6 +645,30 @@ function briefDayHtml(brief, isLatest) {
   `;
 }
 
+/* ---------------- Hero parallax ---------------- */
+function initHeroParallax() {
+  const img = document.querySelector(".hero-bullbear");
+  const hero = document.querySelector(".hero");
+  if (!img || !hero || reduceMotion()) return;
+
+  const max = 26; // px of drift at the edges
+  let raf = 0;
+  const onMove = event => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const rect = hero.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;  // -0.5 .. 0.5
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      img.style.transform = `translate(${(-x * max).toFixed(1)}px, ${(-y * max).toFixed(1)}px)`;
+    });
+  };
+  const reset = () => { img.style.transform = "translate(0px, 0px)"; };
+
+  hero.addEventListener("mousemove", onMove);
+  hero.addEventListener("mouseleave", reset);
+}
+
 /* ---------------- Page motion ---------------- */
 function initPageMotion() {
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add("is-ready")));
@@ -667,6 +691,7 @@ if (el("year")) el("year").textContent = new Date().getFullYear();
 initNav();
 initEvents();
 initNet();
+initHeroParallax();
 applyPrefs();
 render();
 observeReveals();
