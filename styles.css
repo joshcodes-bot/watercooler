@@ -338,6 +338,36 @@ body.is-ready .hero-line:nth-child(2) > span { animation: hero-line .9s .24s var
 }
 body.is-ready .hero-product { animation: product-open .95s .36s var(--ease) forwards; }
 @keyframes product-open { to { clip-path: inset(0 0 0 0); } }
+
+/* Bull/bear hero visual: the .hero-enter wrapper handles the fade + rise reveal on load,
+   the image itself does a gentle continuous float. Idle motion holds still for reduced-motion. */
+.hero-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 458px;
+}
+.hero-bullbear {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 500px;
+  display: block;
+  filter: drop-shadow(0 28px 45px rgba(10, 13, 18, .20));
+  animation: bullbear-float 6s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes bullbear-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@media (max-width: 1100px) {
+  .hero-visual { min-height: 0; margin-bottom: 60px; }
+  .hero-bullbear { max-height: 380px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-bullbear { animation: none; }
+}
 .product-topline {
   min-height: 64px;
   padding: 0 22px;
