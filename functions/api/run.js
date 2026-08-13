@@ -20,12 +20,16 @@
  *   FINNHUB_API_KEY    secret (already used by /api/quotes)
  *   RUN_TOKEN          secret - any long random string you choose
  * Optional env:
- *   CLAUDE_MODEL       defaults to "claude-haiku-4-5" (cheapest); set "claude-opus-4-8" for max quality
+ *   CLAUDE_MODEL       the DECISION model (Portfolio agent). Defaults to "claude-haiku-4-5";
+ *                      set "claude-opus-4-8" for sharper judgement. This is the one worth upgrading.
+ *   RESEARCH_MODEL     the three research agents (News/Macro/Sentiment). Defaults to "claude-haiku-4-5"
+ *                      and should usually stay there - they just summarise inputs, so Opus is wasted on them.
  *   FUND_CAPITAL       notional $ per fund, defaults to 100000
  */
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const model = env.CLAUDE_MODEL || "claude-haiku-4-5";
+  const model = env.CLAUDE_MODEL || "claude-haiku-4-5";           // decision (Portfolio agent)
+  const researchModel = env.RESEARCH_MODEL || "claude-haiku-4-5"; // research agents stay cheap
 
   if (!env.RUN_TOKEN || request.headers.get("x-run-token") !== env.RUN_TOKEN) {
     return json({ error: "Unauthorized" }, 401);
@@ -55,9 +59,9 @@ export async function onRequestPost(context) {
 
     // 3. Research agents - three specialists, run in parallel, each returns a short note.
     const [newsNote, macroNote, sentimentNote] = await Promise.all([
-      newsAgent(env, model, news, tickers),
-      macroAgent(env, model, macro),
-      sentimentAgent(env, model, holdings, quotes)
+      newsAgent(env, researchModel, news, tickers),
+      macroAgent(env, researchModel, macro),
+      sentimentAgent(env, researchModel, holdings, quotes)
     ]);
     const research = { news: newsNote, macro: macroNote, sentiment: sentimentNote };
 
@@ -107,7 +111,7 @@ export async function onRequestPost(context) {
 
     // 7. Log the run
     await env.DB.prepare("INSERT INTO runs (started_at, status, model, note) VALUES (?, ?, ?, ?)")
-      .bind(startedAt, "ok", model, `${tickers.length} tickers priced, 4 agents`).run();
+      .bind(startedAt, "ok", model, `${tickers.length} tickers priced, research ${researchModel}, decision ${model}`).run();
 
     return json({ ok: true, at: now, model, fundsUpdated: (decision.funds || []).length });
   } catch (error) {

@@ -102,6 +102,7 @@ h1, h2, h3, h4, p { margin: 0; }
   width: max-content;
 }
 .brand-mark { width: 27px; height: 27px; color: var(--accent); flex: 0 0 auto; }
+.brand-logo { height: 26px; width: auto; display: block; flex: 0 0 auto; }
 .brand-word {
   color: #fff;
   font-size: 18px;
@@ -684,6 +685,7 @@ body.page-leaving { opacity: 0; transform: translateY(-5px); transition: opacity
   .hamburger { display: block; }
   .brand-mark { width: 25px; height: 25px; }
   .brand-word { font-size: 17px; }
+  .brand-logo { height: 22px; }
   .market-tape { height: 36px; }
   .tape-track { animation-duration: 30s; }
   .hero { min-height: 0; padding: 0 18px; }
