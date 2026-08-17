@@ -262,6 +262,37 @@ function renderTopMetrics() {
   metricsAnimated = true;
 }
 
+// Home page: one live tile per fund - return, model value, positions, and a pulse that
+// goes green while the quote feed is responding. Return uses stored (close-based) prices
+// so it never invents intraday movement; clicking a tile opens that fund on the fund page.
+function renderFundTiles() {
+  const wrap = el("fundTiles");
+  if (!wrap) return;
+  const live = Object.keys(liveQuotes).length > 0;
+  wrap.innerHTML = state.funds.map(fund => {
+    const stats = fundStats(fund);
+    const pos = fund.holdings.length;
+    const sign = stats.returnPct >= 0 ? "positive" : "negative";
+    return `
+      <a class="fund-tile" href="fund.html" data-fund="${escapeHtml(fund.id)}" aria-label="${escapeHtml(fund.name)}, ${signed(stats.returnPct)} return, ${money(stats.value)}">
+        <div class="fund-tile-top">
+          <span class="fund-tile-name">${escapeHtml(fund.name)}</span>
+          <span class="fund-tile-live${live ? " on" : ""}"><i></i>${live ? "Live" : "Idle"}</span>
+        </div>
+        <strong class="fund-tile-return ${sign}">${signed(stats.returnPct)}</strong>
+        <div class="fund-tile-foot">
+          <span>${money(stats.value)}</span>
+          <span>${pos} position${pos === 1 ? "" : "s"}</span>
+        </div>
+      </a>`;
+  }).join("");
+  wrap.querySelectorAll(".fund-tile").forEach(tile => {
+    tile.addEventListener("click", () => {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeFundId: tile.dataset.fund })); } catch (_) { /* ignore */ }
+    });
+  });
+}
+
 function renderSummary() {
   if (!fundSummary) return;
   const fund = activeFund();
@@ -401,6 +432,7 @@ async function refreshQuotes() {
     if (!data || !data.quotes || !Object.keys(data.quotes).length) return;
     liveQuotes = data.quotes;
     renderTape();
+    renderFundTiles();
   } catch (error) {
     // No live feed available; the fallback ticker stays as-is.
   }
@@ -533,6 +565,7 @@ function render() {
   renderFundCards();
   renderFundSelect();
   renderTopMetrics();
+  renderFundTiles();
   renderSummary();
   renderHoldings();
   renderWinnersLosers();

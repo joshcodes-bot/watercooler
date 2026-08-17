@@ -110,13 +110,16 @@ export async function onRequestPost(context) {
       if (inserts.length) await env.DB.batch(inserts);
     }
 
-    // 6. Save the brief
+    // 6. Save the brief - exactly one per day. Clear today's first so multiple runs in a
+    // day overwrite the same brief instead of stacking duplicate posts.
     const b = decision.brief || {};
+    const today = now.slice(0, 10);
+    await env.DB.prepare("DELETE FROM briefs WHERE brief_date = ?").bind(today).run();
     await env.DB.prepare(
       "INSERT INTO briefs (brief_date, market_overview, market, moves, sentiment, news, coming_up, why, created_at) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).bind(
-      now.slice(0, 10), decision.marketOverview || "",
+      today, decision.marketOverview || "",
       b.market || "", b.moves || "", b.sentiment || "", b.news || "", b.comingUp || "", b.why || "", now
     ).run();
 
