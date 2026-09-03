@@ -43,10 +43,6 @@
     <span class="mobile-nav-foot">AI-run funds.</span>
   </nav>
 
-  <div class="market-tape" aria-label="Live portfolio ticker">
-    <div class="tape-track" id="marketTape"></div>
-  </div>
-
   <main>
     <section class="hero">
       <div class="hero-rule" aria-hidden="true"></div>
@@ -76,55 +72,67 @@
       </div>
     </section>
 
+    <section class="market-wrap shell reveal" aria-label="Daily market wrap">
+      <p class="wrap-eyebrow">Market wrap</p>
+      <div class="wrap-head">
+        <h2 id="wrapHead">The desk's latest read lands here after each close.</h2>
+        <div class="wrap-meta" id="wrapMeta"></div>
+      </div>
+      <div class="wrap-grid">
+        <div class="wrap-report" id="wrapReport">
+          <p>Once the agents run, this is where they explain what the market did, what they decided, and the trades they made. In plain English, no jargon.</p>
+        </div>
+        <aside class="glance">
+          <h3>Market at a glance</h3>
+          <div id="glanceRows">
+            <div class="g-row"><span>S&amp;P 500</span><b>·</b></div>
+            <div class="g-row"><span>Nasdaq 100</span><b>·</b></div>
+            <div class="g-row"><span>Dow Jones</span><b>·</b></div>
+            <div class="g-row"><span>Gold</span><b>·</b></div>
+            <div class="g-row"><span>Long bonds</span><b>·</b></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
     <section class="metrics-section shell section-tight">
       <div class="fund-tiles reveal" id="fundTiles" aria-label="Live fund overview"></div>
     </section>
 
-    <section class="how-section shell section">
+    <section class="desk shell section">
       <div class="section-heading reveal">
         <div>
-          <div class="eyebrow">How it works</div>
-          <h2>Four agents,<br />one decision.</h2>
+          <div class="eyebrow">The desk</div>
+          <h2>What they did,<br />and what we hold.</h2>
         </div>
-        <p>Each agent reads its corner of the market. The portfolio agent weighs it all up and rebalances the funds every trading day, and explains every call.</p>
+        <p>Two views of the latest run. The agents' calls on one tab, every live position on the other.</p>
       </div>
-      <div class="agents-grid">
-        <article class="agent-card reveal" data-delay="0">
-          <span class="agent-number">01</span>
-          <div><span class="chip">News</span><h4>News Agent</h4></div>
-          <p>Reads company news, earnings and the market events that move a stock.</p>
-          <span class="agent-arrow">↗</span>
-        </article>
-        <article class="agent-card reveal" data-delay="1">
-          <span class="agent-number">02</span>
-          <div><span class="chip">Macro</span><h4>Macro Agent</h4></div>
-          <p>Watches rates, inflation, jobs and growth, and what they mean for the funds.</p>
-          <span class="agent-arrow">↗</span>
-        </article>
-        <article class="agent-card reveal" data-delay="2">
-          <span class="agent-number">03</span>
-          <div><span class="chip">Sentiment</span><h4>Sentiment Agent</h4></div>
-          <p>Reads the mood around companies, sectors and themes.</p>
-          <span class="agent-arrow">↗</span>
-        </article>
-        <article class="agent-card reveal" data-delay="3">
-          <span class="agent-number">04</span>
-          <div><span class="chip">Portfolio</span><h4>Portfolio Agent</h4></div>
-          <p>Weighs it all up and decides what to add, trim, hold or cut, and why.</p>
-          <span class="agent-arrow">↗</span>
-        </article>
-      </div>
-    </section>
 
-    <section class="funds-section shell section">
-      <div class="section-heading reveal">
-        <div>
-          <div class="eyebrow">The funds</div>
-          <h2>Three funds,<br />three risk levels.</h2>
-        </div>
-        <p>One decision system, expressed through three different mandates. Choose the level of risk, then inspect every position and every reason.</p>
+      <div class="desk-tabs" role="tablist" aria-label="Desk views">
+        <button class="desk-tab" role="tab" id="tab-agents" aria-controls="p-agents" aria-selected="true">What the agents did</button>
+        <button class="desk-tab" role="tab" id="tab-holdings" aria-controls="p-holdings" aria-selected="false">What we're holding</button>
       </div>
-      <div class="fund-grid" id="fundGrid" data-selectable="false"></div>
+
+      <div class="desk-panel reveal" id="p-agents" role="tabpanel" aria-labelledby="tab-agents">
+        <div class="agents-live">
+          <article class="agent-live"><span class="agent-live-name">News agent</span><p data-agent="news">The news read lands here after the next run.</p></article>
+          <article class="agent-live"><span class="agent-live-name">Macro agent</span><p data-agent="macro">The macro read lands here after the next run.</p></article>
+          <article class="agent-live"><span class="agent-live-name">Sentiment agent</span><p data-agent="sentiment">The sentiment read lands here after the next run.</p></article>
+          <article class="agent-live"><span class="agent-live-name">Portfolio agent</span><p data-agent="why">The portfolio reasoning lands here after the next run.</p></article>
+          <article class="agent-live call"><span class="agent-live-name">The call</span><p data-agent="moves">The trades made land here after the next run.</p></article>
+        </div>
+      </div>
+
+      <div class="desk-panel reveal" id="p-holdings" role="tabpanel" aria-labelledby="tab-holdings" hidden>
+        <div class="fund-switch" id="homeFundSwitch"></div>
+        <p class="fund-note" id="homeFundNote"></p>
+        <div class="table-wrap">
+          <table class="holdings-table">
+            <thead><tr><th>Holding</th><th>Weight</th><th>Entry</th><th>Now</th><th>Return</th></tr></thead>
+            <tbody id="homeHoldings"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
   </main>
 

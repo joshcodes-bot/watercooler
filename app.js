@@ -419,9 +419,26 @@ function renderTape() {
 // Pulls live quotes from the /api/quotes Pages Function. If it is not there
 // (opened as a local file, offline, or no API key set), the ticker quietly
 // keeps using the manually entered prices.
+// Index ETFs that feed the "Market at a glance" panel in the wrap.
+const GLANCE = [["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["DIA", "Dow Jones"], ["GLD", "Gold"], ["TLT", "Long bonds"]];
+
+function renderGlance() {
+  const wrap = el("glanceRows");
+  if (!wrap) return;
+  wrap.innerHTML = GLANCE.map(([sym, label]) => {
+    const q = liveQuotes[sym];
+    let val = "·", cls = "";
+    if (q && Number.isFinite(q.changePct)) {
+      cls = q.changePct >= 0 ? "pos" : "neg";
+      val = `${q.changePct >= 0 ? "+" : ""}${q.changePct.toFixed(2)}%`;
+    }
+    return `<div class="g-row"><span>${label}</span><b class="${cls}">${val}</b></div>`;
+  }).join("");
+}
+
 async function refreshQuotes() {
-  if (!marketTape) return;
-  const symbols = [...new Set(state.funds.flatMap(fund => fund.holdings.map(h => h.ticker)))];
+  const fundSyms = state.funds.flatMap(fund => fund.holdings.map(h => h.ticker));
+  const symbols = [...new Set([...fundSyms, ...GLANCE.map(g => g[0])])];
   if (!symbols.length) return;
   try {
     const res = await fetch(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}`, {
@@ -433,6 +450,7 @@ async function refreshQuotes() {
     liveQuotes = data.quotes;
     renderTape();
     renderFundTiles();
+    renderGlance();
   } catch (error) {
     // No live feed available; the fallback ticker stays as-is.
   }
@@ -566,6 +584,7 @@ function render() {
   renderFundSelect();
   renderTopMetrics();
   renderFundTiles();
+  renderHomeFunds();
   renderSummary();
   renderHoldings();
   renderWinnersLosers();
@@ -641,6 +660,93 @@ async function hydrateFromApi() {
   }
 }
 
+// Home page: fill the Market Wrap from the newest brief. The overview becomes the headline,
+// and the market / moves / why fields become the flowing read below it.
+async function renderMarketWrap() {
+  const head = el("wrapHead");
+  if (!head) return;
+  try {
+    const res = await fetch("/api/research", { headers: { accept: "application/json" } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const b = data?.briefs?.[0];
+    if (!b) return;
+    if (b.lede) head.textContent = b.lede;
+    const meta = el("wrapMeta");
+    if (meta && b.date) {
+      const d = new Date(`${b.date}T00:00:00`);
+      meta.innerHTML = `${d.toLocaleDateString("en-NZ", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}<br>US market close`;
+    }
+    const report = el("wrapReport");
+    const paras = [b.market, b.moves, b.why].filter(Boolean);
+    if (report && paras.length) {
+      report.innerHTML = paras.map(p => `<p>${escapeHtml(p)}</p>`).join("")
+        + `<p class="wrap-byline">Written by the Watercooler desk. Four agents argued it out. One decision.</p>`;
+    }
+    // Same brief drives the "What the agents did" tab.
+    const setAgent = (key, val) => {
+      const node = document.querySelector(`[data-agent="${key}"]`);
+      if (node && val) node.textContent = val;
+    };
+    setAgent("news", b.news);
+    setAgent("macro", b.market);
+    setAgent("sentiment", b.sentiment);
+    setAgent("why", b.why);
+    setAgent("moves", b.moves);
+  } catch (error) {
+    // Keep the placeholder wrap.
+  }
+}
+
+// Home page holdings tab: a fund switcher + a table of the selected fund's positions.
+function renderHomeFunds() {
+  const sw = el("homeFundSwitch");
+  if (!sw) return;
+  sw.innerHTML = state.funds.map((f, i) =>
+    `<button role="tab" aria-selected="${i === 0}" data-fund="${escapeHtml(f.id)}">${escapeHtml(f.name)} · ${escapeHtml(f.risk)}</button>`
+  ).join("");
+  sw.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
+    sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === btn));
+    renderHomeHoldings(btn.dataset.fund);
+  }));
+  renderHomeHoldings(state.funds[0]?.id);
+}
+
+function renderHomeHoldings(fundId) {
+  const body = el("homeHoldings");
+  if (!body) return;
+  const fund = state.funds.find(f => f.id === fundId) || state.funds[0];
+  if (!fund) return;
+  const note = el("homeFundNote");
+  if (note) note.textContent = fund.description || "";
+  body.innerHTML = fund.holdings.map(h => {
+    const entry = Number(h.entryPrice) || 0;
+    const now = Number(h.currentPrice) || 0;
+    const ret = entry ? ((now - entry) / entry * 100) : 0;
+    const cls = ret >= 0 ? "pos" : "neg";
+    return `<tr>
+      <td><span class="h-tk">${escapeHtml(h.ticker)}</span><span class="h-co">${escapeHtml(h.company || "")}</span></td>
+      <td class="num">${Number(h.weight || 0).toFixed(0)}%</td>
+      <td class="num">${money(entry, 2)}</td>
+      <td class="num">${money(now, 2)}</td>
+      <td class="h-ret ${cls}">${signed(ret)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function initDesk() {
+  const tabs = [el("tab-agents"), el("tab-holdings")].filter(Boolean);
+  if (!tabs.length) return;
+  tabs.forEach(t => t.addEventListener("click", () => {
+    tabs.forEach(x => {
+      const on = x === t;
+      x.setAttribute("aria-selected", on);
+      const panel = document.getElementById(x.getAttribute("aria-controls"));
+      if (panel) panel.hidden = !on;
+    });
+  }));
+}
+
 async function hydrateResearch() {
   const container = document.getElementById("brief");
   if (!container) return;
@@ -700,6 +806,7 @@ if (el("year")) el("year").textContent = new Date().getFullYear();
 initNav();
 initEvents();
 initNet();
+initDesk();
 applyPrefs();
 render();
 observeReveals();
@@ -707,3 +814,4 @@ refreshQuotes();
 setInterval(refreshQuotes, 60000);
 hydrateFromApi();
 hydrateResearch();
+renderMarketWrap();
