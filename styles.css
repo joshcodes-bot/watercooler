@@ -107,6 +107,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .brand-logo { height: 24px; width: auto; display: block; flex: 0 0 auto; }
 .header-live { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .header-live i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: 0 0 auto; }
+.wordmark { font-family: var(--font-mono); font-size: 16px; font-weight: 600; letter-spacing: -.02em; color: var(--ink); white-space: nowrap; }
+.wordmark b { color: var(--accent); font-weight: 600; }
 .brand-word {
   color: #fff;
   font-size: 18px;
