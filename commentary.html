@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>LiquidAssets · Commentary</title>
+  <meta name="description" content="What the agents did, today and on previous days. Plain-language commentary on every call the desk made and why." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
+</head>
+<body class="research-page">
+
+  <div class="announcement-bar">
+    <span>Full reasoning, no black box.</span>
+    <a href="research.html">The research <span>↗</span></a>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="LiquidAssets home">
+      <span class="wordmark"><b>~</b> liquidassets</span>
+    </a>
+    <nav class="desktop-nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a href="commentary.html" aria-current="page">Commentary</a>
+      <a href="fund.html">Funds</a>
+      <a href="research.html">Research</a>
+    </nav>
+    <div class="header-actions">
+      <span class="header-live"><i></i>Live</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+    <a href="index.html">Home</a>
+    <a href="commentary.html" aria-current="page">Commentary</a>
+    <a href="fund.html">Funds</a>
+    <a href="research.html">Research</a>
+    <span class="mobile-nav-foot">AI-run funds.</span>
+  </nav>
+
+  <main>
+    <section class="shell section-tight">
+      <div class="section-heading reveal">
+        <div>
+          <div class="eyebrow">Commentary</div>
+          <h2>What the agents did.</h2>
+        </div>
+        <p>A running log of every call the desk made, today and on the days before it. The reasoning in plain English, not a black box.</p>
+      </div>
+
+      <!-- Live briefs replace these placeholders once the AI runs. -->
+      <div class="brief" id="brief">
+        <article class="brief-day today reveal">
+          <div class="brief-head">
+            <div class="brief-date">
+              <span class="brief-dow">Tuesday</span>
+              <strong>4 August 2026</strong>
+            </div>
+            <span class="brief-return positive">Funds +0.8%</span>
+          </div>
+          <p class="brief-lede">Quiet session. Soft inflation data nudged the market up, and Whitewater did the heavy lifting again.</p>
+          <dl class="brief-grid">
+            <div><dt>Market</dt><dd>US large caps closed higher. Inflation came in a shade below expectations, which took some heat off interest rates.</dd></div>
+            <div><dt>Moves</dt><dd>Held the lot. Whitewater is already running hot on space and AI, so we sat on our hands rather than chase it higher.</dd></div>
+            <div><dt>Sentiment</dt><dd>Steady. The noise around AI hardware cooled off from last week but stayed positive. No panic, no euphoria.</dd></div>
+            <div><dt>News</dt><dd>Rocket Lab picked up another launch contract, which backs the growth story we own it for.</dd></div>
+            <div><dt>Coming up</dt><dd>Nvidia and Palantir both report inside the next fortnight. They sit in Whitewater, so expect the action there.</dd></div>
+            <div><dt>Why</dt><dd>Softer inflation helps the long-run growth names we hold, but the fund is already concentrated, so we would rather wait for a dip than pay up now.</dd></div>
+          </dl>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell">
+    <a class="brand" href="index.html" aria-label="LiquidAssets home">
+      <span class="wordmark"><b>~</b> liquidassets</span>
+    </a>
+    <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
+    <nav class="footer-nav">
+      <a href="index.html">Home</a>
+      <a href="commentary.html">Commentary</a>
+      <a href="fund.html">Funds</a>
+      <a href="research.html">Research</a>
+      <span>Josh McWilliam 2026</span>
+    </nav>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

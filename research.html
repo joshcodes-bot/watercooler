@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#111111" />
+  <meta name="theme-color" content="#0a0a0a" />
   <title>LiquidAssets · Research</title>
-  <meta name="description" content="A plain-language daily brief: what the market did, what the funds did, the sentiment and news that mattered, and the reasoning behind every call." />
+  <meta name="description" content="The research behind the desk: TradingAgents, an open multi-agent AI framework, explained simply then in depth, and how LiquidAssets turned it into three risk-tiered funds." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" />
@@ -17,18 +17,17 @@
 
   <div class="announcement-bar">
     <span>Full reasoning, no black box.</span>
-    <a href="research.html">Read the research <span>↗</span></a>
+    <a href="commentary.html">Today's commentary <span>↗</span></a>
   </div>
 
-  <!-- ===== Header ===== -->
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="LiquidAssets home">
       <span class="wordmark"><b>~</b> liquidassets</span>
     </a>
     <nav class="desktop-nav" aria-label="Primary">
       <a href="index.html">Home</a>
-      <a href="index.html#agents">Agents</a>
-      <a href="fund.html">Holdings</a>
+      <a href="commentary.html">Commentary</a>
+      <a href="fund.html">Funds</a>
       <a href="research.html" aria-current="page">Research</a>
     </nav>
     <div class="header-actions">
@@ -41,100 +40,51 @@
 
   <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
     <a href="index.html">Home</a>
-    <a href="index.html#agents">Agents</a>
-    <a href="fund.html">Holdings</a>
+    <a href="commentary.html">Commentary</a>
+    <a href="fund.html">Funds</a>
     <a href="research.html" aria-current="page">Research</a>
     <span class="mobile-nav-foot">AI-run funds.</span>
   </nav>
 
-  <!-- ===== Ticker ===== -->
-
   <main>
-    <!-- ===== Heading ===== -->
     <section class="shell section-tight">
       <div class="section-heading reveal">
         <div>
-          <div class="eyebrow">Daily brief</div>
-          <h2>The brief.</h2>
+          <div class="eyebrow">Research</div>
+          <h2>The research behind the desk.</h2>
         </div>
+        <p>LiquidAssets is not a black box. The funds are run by an open, published piece of AI research called TradingAgents. Here is what that means, starting simple.</p>
       </div>
 
-      <!-- ===== Day-by-day timeline (live briefs replace these once the AI runs) ===== -->
-      <div class="brief" id="brief">
+      <div class="doc reveal">
+        <h3>The idea, in a sentence</h3>
+        <p>Instead of one model taking a wild guess at the market, TradingAgents runs a small team of AI agents that behave like a real investment desk. Each one has a job. They argue it out. A portfolio manager makes the final call.</p>
 
-        <!-- Tuesday 4 August 2026 -->
-        <article class="brief-day today reveal">
-          <div class="brief-head">
-            <div class="brief-date">
-              <span class="brief-dow">Tuesday</span>
-              <strong>4 August 2026</strong>
-            </div>
-            <span class="brief-return positive">Funds +0.8%</span>
-          </div>
-          <p class="brief-lede">Quiet session. Soft inflation data nudged the market up, and Whitewater did the heavy lifting again.</p>
-          <dl class="brief-grid">
-            <div><dt>Market</dt><dd>US large caps closed higher. Inflation came in a shade below expectations, which took some heat off interest rates. Industrials and energy led. Software lagged.</dd></div>
-            <div><dt>Moves</dt><dd>Held the lot. <b>Whitewater</b> is already running hot on space and AI, so we sat on our hands rather than chase it higher.</dd></div>
-            <div><dt>Sentiment</dt><dd>Steady. The noise around AI hardware cooled off from last week but stayed positive. No panic, no euphoria.</dd></div>
-            <div><dt>News</dt><dd><b>Rocket Lab</b> picked up another launch contract, which backs the growth story we own it for. <b>Nvidia</b> locked in its next earnings date.</dd></div>
-            <div><dt>Coming up</dt><dd>Nvidia and Palantir both report inside the next fortnight. They sit in Whitewater, so expect the action there.</dd></div>
-            <div><dt>Why</dt><dd>Softer inflation helps the long-run growth names we hold. But the fund is already concentrated, so we would rather wait for a dip than pay up now.</dd></div>
-          </dl>
-        </article>
+        <h3>The team</h3>
+        <ul>
+          <li><b>News agent</b> — reads the headlines and earnings for each stock and works out what actually matters.</li>
+          <li><b>Macro agent</b> — watches rates, inflation and the broad market. The weather overhead.</li>
+          <li><b>Sentiment agent</b> — reads the mood. Is the crowd greedy, scared, or half asleep.</li>
+          <li><b>The researchers</b> — a bull and a bear take opposite sides and genuinely argue each name.</li>
+          <li><b>The trader</b> — turns that argument into a proposed move.</li>
+          <li><b>The risk team</b> — stress-tests the move before it is allowed anywhere near the book.</li>
+          <li><b>The portfolio manager</b> — weighs the lot and sets the final position.</li>
+        </ul>
 
-        <!-- Monday 3 August 2026 -->
-        <article class="brief-day reveal">
-          <div class="brief-head">
-            <div class="brief-date">
-              <span class="brief-dow">Monday</span>
-              <strong>3 August 2026</strong>
-            </div>
-            <span class="brief-return positive">Funds +0.1%</span>
-          </div>
-          <p class="brief-lede">A waiting game. The market sat tight ahead of Tuesday's inflation print.</p>
-          <dl class="brief-grid">
-            <div><dt>Market</dt><dd>Flat on the day. Low volume, everyone waiting on the data. Bonds firmed, which gave <b>Stillwater</b> a small lift.</dd></div>
-            <div><dt>Moves</dt><dd>Opened a small starter position in infrastructure inside <b>Deepwater</b>. It fits the balanced mandate and spreads the fund past tech.</dd></div>
-            <div><dt>Sentiment</dt><dd>Cautious. Wide spreads and thin trade. Classic wait and see.</dd></div>
-            <div><dt>News</dt><dd><b>Costco</b> posted solid monthly sales, which supports the Stillwater thesis. Visa's payment volumes held up.</dd></div>
-            <div><dt>Coming up</dt><dd>Inflation data Tuesday. A run of retail earnings later in the week.</dd></div>
-            <div><dt>Why</dt><dd>Adding infrastructure now, at a light weight, gives Deepwater a second engine if tech stalls. A low-risk way to diversify.</dd></div>
-          </dl>
-        </article>
+        <h3>Why a team beats one model</h3>
+        <p>Ask a single model "should I buy this?" and you usually get a confident, shallow yes. Force a bull and a bear to fight over it, then make a risk team sign off, and the weak points that one quick answer would gloss over come straight to the surface. You end up with a decision that shows its working, not a hunch dressed up as certainty.</p>
 
-        <!-- Friday 31 July 2026 -->
-        <article class="brief-day reveal">
-          <div class="brief-head">
-            <div class="brief-date">
-              <span class="brief-dow">Friday</span>
-              <strong>31 July 2026</strong>
-            </div>
-            <span class="brief-return positive">Funds +1.4%</span>
-          </div>
-          <p class="brief-lede">Strong finish to the month. Tech led, and Whitewater closed the week out in front.</p>
-          <dl class="brief-grid">
-            <div><dt>Market</dt><dd>Broad rally into month end. Growth and semiconductors led the charge. The S&amp;P finished the week up.</dd></div>
-            <div><dt>Moves</dt><dd>Trimmed part of the software overweight in <b>Whitewater</b> back toward target. Banked some of the run.</dd></div>
-            <div><dt>Sentiment</dt><dd>Upbeat, bordering on hot. AI names were the talk of the tape all week.</dd></div>
-            <div><dt>News</dt><dd><b>Microsoft</b> and <b>Alphabet</b> both flagged strong cloud demand. Tesla stayed choppy on delivery numbers.</dd></div>
-            <div><dt>Coming up</dt><dd>A fresh month means new inflation and jobs data. Earnings season rolls on.</dd></div>
-            <div><dt>Why</dt><dd>When a position runs well past its target weight, we trim. It keeps the fund honest and books gains without trying to call the top.</dd></div>
-          </dl>
-        </article>
+        <h3>Under the hood</h3>
+        <p>The heavier version: TradingAgents is built on LangGraph, which wires the agents into a graph they pass their findings through. It pulls live prices and fundamentals, recent news and macro data, runs each agent as its own language-model call, and lets the researcher and risk stages run several rounds of back-and-forth before the manager commits. It is open research from Tauric Research, published on Hugging Face and arXiv, so anyone can read exactly how it reaches a call. We will keep unpacking that here over time, going a layer deeper each time.</p>
 
+        <h3>Where LiquidAssets comes in</h3>
+        <p>This is where the research meets a real hand on the tiller. LiquidAssets is run by a finance and computer science student who has traded the US and New Zealand markets for years, and who took TradingAgents and pivoted it into three funds at different risk levels, Whitewater, Tidewater and Stillwater, so the same engine can suit a bold appetite or a cautious one. The academic work does the reasoning. The judgement about how to point it, and at what risk, is ours.</p>
+
+        <p class="note">Model portfolios only. Not financial advice. No real trades are placed by this prototype.</p>
       </div>
     </section>
-
   </main>
 
-  <!-- ===== Wave ===== -->
-  <div class="wave-band" aria-hidden="true">
-    <div class="wave-layer wave-3"></div>
-    <div class="wave-layer wave-2"></div>
-    <div class="wave-layer wave-1"></div>
-  </div>
-
-  <!-- ===== Footer ===== -->
   <footer class="site-footer shell">
     <a class="brand" href="index.html" aria-label="LiquidAssets home">
       <span class="wordmark"><b>~</b> liquidassets</span>
@@ -142,7 +92,8 @@
     <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
     <nav class="footer-nav">
       <a href="index.html">Home</a>
-      <a href="fund.html">AI Fund</a>
+      <a href="commentary.html">Commentary</a>
+      <a href="fund.html">Funds</a>
       <a href="research.html">Research</a>
       <span>Josh McWilliam 2026</span>
     </nav>

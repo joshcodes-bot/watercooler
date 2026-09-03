@@ -580,6 +580,16 @@ body.is-ready .hero-enter { animation: enter .75s var(--ease) forwards; animatio
 .h-ret.neg { color: var(--red); }
 @media (max-width: 620px) { .agent-live { grid-template-columns: 1fr; gap: 8px; } }
 
+/* ---- Research explainer prose ---- */
+.doc { max-width: 72ch; }
+.doc h3 { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-dark); margin: 42px 0 14px; font-weight: 500; }
+.doc p { font-size: 15px; line-height: 1.75; color: var(--ink); margin: 0 0 20px; }
+.doc ul { margin: 0 0 20px; padding: 0; list-style: none; }
+.doc li { font-size: 15px; line-height: 1.65; color: var(--ink); padding: 11px 0; border-bottom: 1px solid var(--line-soft); }
+.doc li:last-child { border-bottom: 0; }
+.doc li b { color: var(--ink); }
+.doc .note { color: var(--soft); font-size: 12px; margin-top: 34px; }
+
 .section-heading {
   margin-bottom: 30px;
   padding-top: 22px;
