@@ -763,23 +763,27 @@ async function hydrateResearch() {
 }
 
 function briefDayHtml(brief, isLatest) {
-  const rows = [
-    ["Market", brief.market], ["Moves", brief.moves], ["Sentiment", brief.sentiment],
-    ["News", brief.news], ["Coming up", brief.comingUp], ["Why", brief.why]
-  ].filter(([, value]) => value);
+  const agents = [
+    ["01", "News", brief.news],
+    ["02", "Macro", brief.market],
+    ["03", "Sentiment", brief.sentiment],
+    ["04", "Portfolio", brief.why],
+    ["05", "The call", brief.moves]
+  ].filter(([, , value]) => value);
   const dateObj = brief.date ? new Date(`${brief.date}T00:00:00`) : null;
-  const dow = dateObj ? dateObj.toLocaleDateString("en-NZ", { weekday: "long" }) : "";
-  const dstr = dateObj ? dateObj.toLocaleDateString("en-NZ", { day: "numeric", month: "long", year: "numeric" }) : (brief.date || "");
+  const dstr = dateObj
+    ? dateObj.toLocaleDateString("en-NZ", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    : (brief.date || "");
   return `
-    <article class="brief-day ${isLatest ? "today" : ""} reveal">
-      <div class="brief-head">
-        <div class="brief-date"><span class="brief-dow">${escapeHtml(dow)}</span><strong>${escapeHtml(dstr)}</strong></div>
-        ${isLatest ? '<span class="brief-return positive">Latest</span>' : ""}
+    <article class="cday reveal">
+      <div class="cday-head">
+        <span class="cday-date">${escapeHtml(dstr)}</span>
+        ${isLatest ? '<span class="cday-tag">Latest</span>' : ""}
       </div>
-      <p class="brief-lede">${escapeHtml(brief.lede || "")}</p>
-      <dl class="brief-grid">
-        ${rows.map(([key, value]) => `<div><dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
-      </dl>
+      ${brief.lede ? `<p class="cday-lede">${escapeHtml(brief.lede)}</p>` : ""}
+      <div class="cagents">
+        ${agents.map(([n, name, value]) => `<div class="cagent${name === "The call" ? " call" : ""}"><span class="cagent-name"><b>${n}</b> ${escapeHtml(name)}</span><p>${escapeHtml(value)}</p></div>`).join("")}
+      </div>
     </article>
   `;
 }

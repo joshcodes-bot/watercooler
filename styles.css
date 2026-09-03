@@ -580,6 +580,20 @@ body.is-ready .hero-enter { animation: enter .75s var(--ease) forwards; animatio
 .h-ret.neg { color: var(--red); }
 @media (max-width: 620px) { .agent-live { grid-template-columns: 1fr; gap: 8px; } }
 
+/* ---- Commentary: roomy per-day agent log ---- */
+.cday { padding: 44px 0; border-bottom: 1px solid var(--line); }
+.cday:first-child { padding-top: 8px; }
+.cday-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.cday-date { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.cday-tag { font-size: 11px; color: var(--accent-dark); letter-spacing: .12em; text-transform: uppercase; }
+.cday-lede { font-size: 19px; line-height: 1.5; color: var(--ink); margin: 0 0 30px; max-width: 60ch; letter-spacing: -.015em; }
+.cagent { display: grid; grid-template-columns: 200px 1fr; gap: 52px; padding: 22px 0; border-top: 1px solid var(--line-soft); align-items: start; }
+.cagent-name { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.cagent-name b { color: var(--accent); font-weight: 500; margin-right: 10px; }
+.cagent p { margin: 0; font-size: 16px; line-height: 1.7; color: var(--ink); max-width: 66ch; }
+.cagent.call .cagent-name { color: var(--accent-dark); }
+@media (max-width: 640px) { .cagent { grid-template-columns: 1fr; gap: 8px; } }
+
 /* ---- Research explainer prose ---- */
 .doc { max-width: 72ch; }
 .doc h3 { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-dark); margin: 42px 0 14px; font-weight: 500; }
@@ -589,6 +603,12 @@ body.is-ready .hero-enter { animation: enter .75s var(--ease) forwards; animatio
 .doc li:last-child { border-bottom: 0; }
 .doc li b { color: var(--ink); }
 .doc .note { color: var(--soft); font-size: 12px; margin-top: 34px; }
+.doc ol.steps { list-style: none; margin: 4px 0 20px; padding: 0; }
+.doc ol.steps li { display: grid; grid-template-columns: 52px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--line-soft); align-items: start; }
+.doc ol.steps li:last-child { border-bottom: 0; }
+.doc ol.steps .step-n { color: var(--accent); font-size: 13px; }
+.doc ol.steps div { font-size: 15px; line-height: 1.65; color: var(--ink); }
+.doc ol.steps b { color: var(--ink); }
 
 .section-heading {
   margin-bottom: 30px;

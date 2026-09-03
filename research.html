@@ -77,6 +77,16 @@
         <h3>Under the hood</h3>
         <p>The heavier version: TradingAgents is built on LangGraph, which wires the agents into a graph they pass their findings through. It pulls live prices and fundamentals, recent news and macro data, runs each agent as its own language-model call, and lets the researcher and risk stages run several rounds of back-and-forth before the manager commits. It is open research from Tauric Research, published on Hugging Face and arXiv, so anyone can read exactly how it reaches a call. We will keep unpacking that here over time, going a layer deeper each time.</p>
 
+        <h3>How a call actually gets made</h3>
+        <p>Every position starts as a five-step relay. Nothing skips a stage, and each one can send the decision back down the line.</p>
+        <ol class="steps">
+          <li><span class="step-n">01</span><div><b>Gather.</b> The analyst agents pull the day's prices, fundamentals, recent news and the macro backdrop for each name on the watchlist.</div></li>
+          <li><span class="step-n">02</span><div><b>Debate.</b> A bull and a bear researcher argue the case back and forth, for as many rounds as it takes to stop repeating themselves.</div></li>
+          <li><span class="step-n">03</span><div><b>Propose.</b> The trader takes the stronger side of that debate and writes a concrete move: buy, hold or sell, and how much.</div></li>
+          <li><span class="step-n">04</span><div><b>Stress-test.</b> The risk team attacks the proposal on a risk-first basis, and can send it back if it runs too hot for the fund's mandate.</div></li>
+          <li><span class="step-n">05</span><div><b>Commit.</b> The portfolio manager makes the final call, sizes the position, and writes the one-line reason you read on the Commentary page.</div></li>
+        </ol>
+
         <h3>Where LiquidAssets comes in</h3>
         <p>This is where the research meets a real hand on the tiller. LiquidAssets is run by a finance and computer science student who has traded the US and New Zealand markets for years, and who took TradingAgents and pivoted it into three funds at different risk levels, Whitewater, Tidewater and Stillwater, so the same engine can suit a bold appetite or a cautious one. The academic work does the reasoning. The judgement about how to point it, and at what risk, is ours.</p>
 
