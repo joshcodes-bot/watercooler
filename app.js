@@ -1,444 +1,330 @@
-/* ============================================================
-   LiquidAssets shared app logic (page-aware)
-   Every render helper no-ops if its page elements are absent,
-   so the same file safely powers Home, AI Fund and Research.
-   ============================================================ */
+/* ==========================================================================
+   LiquidAssets - shared page logic
+   Reads live state from the Cloudflare Pages Functions (/api/funds,
+   /api/research, /api/quotes) and falls back to built-in defaults when the
+   API isn't there (opened locally, offline, or before the first AI run).
+   Every renderer no-ops on pages that don't contain its elements.
+   ========================================================================== */
 
-const STORAGE_KEY = "watercooler-funds-v3";
-const PREFS_KEY = "watercooler-prefs-v3";
+const el = id => document.getElementById(id);
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-function uid() {
-  if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
-    return globalThis.crypto.randomUUID();
-  }
-  return `wc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-/* ---------------- Default data ---------------- */
+/* ---------------- Defaults (entry === current, so returns start at 0.00%) --- */
 const defaultFunds = [
   {
-    id: "whitewater",
-    name: "Whitewater",
-    code: "WTR-AG",
-    risk: "Aggressive",
-    description: "High-risk, high-velocity alpha generation from market chaos.",
+    id: "WTR-AG", code: "WTR-AG", name: "Whitewater", risk: "Aggressive",
+    description: "Aggressive growth. Backs bold, fast-moving companies for outsized upside.",
     holdings: [
-      { id: uid(), ticker: "RKLB", company: "Rocket Lab", weight: 28, shares: 90, entryPrice: 24.2, currentPrice: 24.2, thesis: "Launch, space systems and long-duration infrastructure growth." },
-      { id: uid(), ticker: "NVDA", company: "NVIDIA", weight: 25, shares: 12, entryPrice: 132.5, currentPrice: 132.5, thesis: "Core compute layer for accelerated AI workloads." },
-      { id: uid(), ticker: "PLTR", company: "Palantir", weight: 20, shares: 35, entryPrice: 92.8, currentPrice: 92.8, thesis: "Operational AI deployment with strong government and enterprise positioning." },
-      { id: uid(), ticker: "TSLA", company: "Tesla", weight: 14, shares: 7, entryPrice: 301.4, currentPrice: 301.4, thesis: "High-variance autonomy, energy and manufacturing optionality." }
+      { ticker: "RKLB", company: "Rocket Lab", weight: 16, entryPrice: 81.17, currentPrice: 81.17 },
+      { ticker: "ASTS", company: "AST SpaceMobile", weight: 15, entryPrice: 46.80, currentPrice: 46.80 },
+      { ticker: "NVDA", company: "NVIDIA", weight: 14, entryPrice: 224.09, currentPrice: 224.09 },
+      { ticker: "PLTR", company: "Palantir Technologies", weight: 13, entryPrice: 171.04, currentPrice: 171.04 },
+      { ticker: "TSLA", company: "Tesla", weight: 12, entryPrice: 327.51, currentPrice: 327.51 },
+      { ticker: "IONQ", company: "IonQ", weight: 11, entryPrice: 41.05, currentPrice: 41.05 },
+      { ticker: "AMD", company: "AMD", weight: 10, entryPrice: 174.90, currentPrice: 174.90 },
+      { ticker: "CRWD", company: "CrowdStrike Holdings", weight: 9, entryPrice: 419.60, currentPrice: 419.60 }
     ]
   },
   {
-    id: "deepwater",
-    name: "Deepwater",
-    code: "WTR-MD",
-    risk: "Balanced",
-    description: "Medium-risk, current-driven institutional growth.",
+    id: "WTR-MD", code: "WTR-MD", name: "Tidewater", risk: "Balanced",
+    description: "Balanced approach. Steady compounding with controlled drawdown.",
     holdings: [
-      { id: uid(), ticker: "MSFT", company: "Microsoft", weight: 24, shares: 8, entryPrice: 446.2, currentPrice: 446.2, thesis: "Cloud distribution, enterprise software and AI monetisation." },
-      { id: uid(), ticker: "GOOGL", company: "Alphabet", weight: 20, shares: 14, entryPrice: 184.7, currentPrice: 184.7, thesis: "Search cash flows funding a broad AI and infrastructure portfolio." },
-      { id: uid(), ticker: "AMZN", company: "Amazon", weight: 20, shares: 11, entryPrice: 207.4, currentPrice: 207.4, thesis: "AWS, logistics scale and operating leverage." },
-      { id: uid(), ticker: "V", company: "Visa", weight: 15, shares: 9, entryPrice: 330.5, currentPrice: 330.5, thesis: "Global payment rails with resilient economics." }
+      { ticker: "VOO", company: "Vanguard S&P 500 ETF", weight: 18, entryPrice: 710.17, currentPrice: 710.17 },
+      { ticker: "QQQ", company: "Invesco QQQ", weight: 15, entryPrice: 578.40, currentPrice: 578.40 },
+      { ticker: "MSFT", company: "Microsoft", weight: 13, entryPrice: 492.43, currentPrice: 492.43 },
+      { ticker: "GOOGL", company: "Alphabet", weight: 12, entryPrice: 343.54, currentPrice: 343.54 },
+      { ticker: "LLY", company: "Eli Lilly", weight: 11, entryPrice: 905.00, currentPrice: 905.00 },
+      { ticker: "UNH", company: "UnitedHealth", weight: 11, entryPrice: 405.59, currentPrice: 405.59 },
+      { ticker: "V", company: "Visa", weight: 10, entryPrice: 359.42, currentPrice: 359.42 },
+      { ticker: "COST", company: "Costco", weight: 10, entryPrice: 949.58, currentPrice: 949.58 }
     ]
   },
   {
-    id: "stillwater",
-    name: "Stillwater",
-    code: "WTR-LO",
-    risk: "Defensive",
-    description: "Low-risk, high-certainty capital preservation.",
+    id: "WTR-LO", code: "WTR-LO", name: "Stillwater", risk: "Defensive",
+    description: "Capital preservation. Low drawdown, boring on purpose.",
     holdings: [
-      { id: uid(), ticker: "VOO", company: "Vanguard S&P 500 ETF", weight: 38, shares: 10, entryPrice: 552.1, currentPrice: 552.1, thesis: "Low-cost US large-cap core exposure." },
-      { id: uid(), ticker: "BRK.B", company: "Berkshire Hathaway", weight: 20, shares: 8, entryPrice: 472.2, currentPrice: 472.2, thesis: "Diversified quality assets and disciplined capital allocation." },
-      { id: uid(), ticker: "COST", company: "Costco", weight: 15, shares: 3, entryPrice: 940.3, currentPrice: 940.3, thesis: "Recurring membership economics and resilient consumer loyalty." },
-      { id: uid(), ticker: "BND", company: "Vanguard Total Bond Market ETF", weight: 15, shares: 20, entryPrice: 73.1, currentPrice: 73.1, thesis: "Broad fixed-income ballast." }
+      { ticker: "VOO", company: "Vanguard S&P 500 ETF", weight: 24, entryPrice: 710.17, currentPrice: 710.17 },
+      { ticker: "SCHD", company: "Schwab US Dividend ETF", weight: 16, entryPrice: 28.15, currentPrice: 28.15 },
+      { ticker: "BND", company: "Vanguard Total Bond ETF", weight: 14, entryPrice: 72.28, currentPrice: 72.28 },
+      { ticker: "GLD", company: "SPDR Gold", weight: 12, entryPrice: 309.40, currentPrice: 309.40 },
+      { ticker: "JNJ", company: "Johnson & Johnson", weight: 10, entryPrice: 170.20, currentPrice: 170.20 },
+      { ticker: "KO", company: "Coca-Cola", weight: 9, entryPrice: 86.71, currentPrice: 86.71 },
+      { ticker: "PG", company: "Procter & Gamble", weight: 8, entryPrice: 144.08, currentPrice: 144.08 },
+      { ticker: "BRK.B", company: "Berkshire Hathaway", weight: 7, entryPrice: 510.00, currentPrice: 510.00 }
     ]
   }
 ];
 
-const defaultPrefs = {
-  risk: "Balanced",
-  horizon: "3 to 5 years",
-  depth: "Concise",
-  maxPosition: "25",
-  industries: "Space, AI, Infrastructure, Defence",
-  watch: "Rocket Lab, space systems, AI platforms, economic shifts, sentiment spikes"
-};
+let funds = defaultFunds.map(f => ({ ...f, holdings: f.holdings.map(h => ({ ...h })) }));
+let activeFundId = funds[0].id;
 
-/* ---------------- State ---------------- */
-function cloneDefaults() {
-  return JSON.parse(JSON.stringify(defaultFunds));
-}
-
-function loadState() {
-  // Read-only dashboard: funds always come from code (the AI's book, for now),
-  // so wording/holdings edits show immediately. We only remember which fund the
-  // viewer last looked at.
-  let savedActiveFundId = "whitewater";
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (stored?.activeFundId) savedActiveFundId = stored.activeFundId;
-  } catch (error) {
-    console.warn("Could not read saved Watercooler data", error);
-  }
-  return { funds: cloneDefaults(), activeFundId: savedActiveFundId };
-}
-
-function saveState() {
-  state.activeFundId = activeFundId;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeFundId }));
-}
-
-function loadPrefs() {
-  try {
-    return { ...defaultPrefs, ...(JSON.parse(localStorage.getItem(PREFS_KEY)) || {}) };
-  } catch (error) {
-    return { ...defaultPrefs };
-  }
-}
-
-let state = loadState();
-let activeFundId = state.activeFundId || state.funds[0]?.id;
-
-/* ---------------- Formatting helpers ---------------- */
-function money(value, digits = 0) {
-  return new Intl.NumberFormat("en-NZ", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits
-  }).format(Number.isFinite(value) ? value : 0);
-}
-
-function number(value, digits = 0) {
-  return new Intl.NumberFormat("en-NZ", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits
-  }).format(Number.isFinite(value) ? value : 0);
-}
-
+/* ---------------- Helpers ---------------- */
 function escapeHtml(value = "") {
-  return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;" })[char]);
+  return String(value).replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;" }[c]));
 }
-
-function riskLabel(risk) {
-  if (risk === "Aggressive") return "High risk";
-  if (risk === "Defensive") return "Low risk";
-  return "Medium risk";
+function money(value, digits = 2) {
+  return new Intl.NumberFormat("en-NZ", {
+    style: "currency", currency: "USD",
+    minimumFractionDigits: digits, maximumFractionDigits: digits
+  }).format(Number.isFinite(value) ? value : 0);
 }
-
-// 3 = high, 2 = medium, 1 = low, drives the card strip, badge and meter.
-function riskLevel(risk) {
-  if (risk === "Aggressive") return 3;
-  if (risk === "Defensive") return 1;
-  return 2;
+function signed(value, digits = 1) {
+  const v = Number.isFinite(value) ? value : 0;
+  return `${v >= 0 ? "+" : ""}${v.toFixed(digits)}%`;
 }
-
 function riskClass(risk) {
   if (risk === "Aggressive") return "risk-high";
   if (risk === "Defensive") return "risk-low";
   return "risk-med";
 }
-
-function signed(value, digits = 1, suffix = "%") {
-  return `${value >= 0 ? "+" : ""}${value.toFixed(digits)}${suffix}`;
+function riskLabel(risk) {
+  if (risk === "Aggressive") return "High risk";
+  if (risk === "Defensive") return "Low risk";
+  return "Medium risk";
+}
+function fundReturn(fund) {
+  const cost = fund.holdings.reduce((s, h) => s + (Number(h.weight) || 0) * (Number(h.entryPrice) || 0), 0);
+  const value = fund.holdings.reduce((s, h) => s + (Number(h.weight) || 0) * (Number(h.currentPrice) || 0), 0);
+  return cost ? ((value - cost) / cost) * 100 : 0;
+}
+function formatDate(iso) {
+  if (!iso) return "";
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric" });
 }
 
-/* ---------------- Stats ---------------- */
-function fundStats(fund) {
-  const cost = fund.holdings.reduce((sum, item) => sum + item.shares * item.entryPrice, 0);
-  const value = fund.holdings.reduce((sum, item) => sum + item.shares * item.currentPrice, 0);
-  const pnl = value - cost;
-  const returnPct = cost ? (pnl / cost) * 100 : 0;
-  const weight = fund.holdings.reduce((sum, item) => sum + Number(item.weight || 0), 0);
-  return { cost, value, pnl, returnPct, weight };
-}
+/* ---------------- Home ---------------- */
+function renderHome() {
+  const grid = el("homeFunds");
+  if (!grid) return;
 
-function allStats() {
-  return state.funds.reduce((acc, fund) => {
-    const stats = fundStats(fund);
-    acc.value += stats.value;
-    acc.cost += stats.cost;
-    acc.positions += fund.holdings.length;
-    return acc;
-  }, { value: 0, cost: 0, positions: 0 });
-}
-
-function activeFund() {
-  return state.funds.find(fund => fund.id === activeFundId) || state.funds[0];
-}
-
-/* ---------------- Element handles (may be null per page) ---------------- */
-const el = id => document.getElementById(id);
-const fundGrid = el("fundGrid");        // home summary + fund page rail share this id
-const fundSelect = el("fundSelect");
-const fundSummary = el("fundSummary");
-const holdingsBody = el("holdingsBody");
-const holdingsTable = el("holdingsTable");
-const emptyState = el("emptyState");
-const winnersLosers = el("winnersLosers");
-const chartSvg = el("chartSvg");
-const marketTape = el("marketTape");
-const toast = el("toast");
-
-/* ---------------- Renderers ---------------- */
-function renderFundCards() {
-  if (!fundGrid) return;
-  const selectable = fundGrid.dataset.selectable === "true";
-  fundGrid.innerHTML = state.funds.map((fund, index) => {
-    const stats = fundStats(fund);
-    const active = selectable && fund.id === activeFundId ? "active" : "";
+  grid.innerHTML = funds.map(f => {
+    const ret = fundReturn(f);
     return `
-      <article class="fund-card reveal ${active}" data-risk="${escapeHtml(fund.risk)}" data-level="${riskLevel(fund.risk)}" data-fund-id="${fund.id}" data-delay="${index % 3}">
-        <span class="risk-strip" aria-hidden="true"></span>
-        <div class="fund-card-head">
-          <span class="risk-badge ${riskClass(fund.risk)}">${riskLabel(fund.risk)}</span>
-          <span class="fund-code">${escapeHtml(fund.code)}</span>
-        </div>
-        <div class="risk-meter" aria-hidden="true"><i></i><i></i><i></i></div>
-        <h3>${escapeHtml(fund.name)}</h3>
-        <p>${escapeHtml(fund.description || "A custom model portfolio.")}</p>
-        <div class="fund-card-footer">
-          <div><span>Positions</span><strong>${fund.holdings.length}</strong></div>
-          <div><span>Return</span><strong class="${stats.returnPct >= 0 ? "positive" : "negative"}">${signed(stats.returnPct)}</strong></div>
-          <div><span>Allocated</span><strong>${number(stats.weight, 1)}%</strong></div>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  fundGrid.querySelectorAll(".fund-card").forEach(card => {
-    card.addEventListener("click", () => {
-      activeFundId = card.dataset.fundId;
-      saveState();
-      if (selectable) {
-        render();
-        el("fundDesk")?.scrollIntoView({ behavior: "smooth" });
-      } else {
-        // Home: jump to the AI Fund page with this fund active
-        window.location.href = "fund.html";
-      }
-    });
-  });
-  observeReveals();
-}
-
-function renderFundSelect() {
-  if (!fundSelect) return;
-  fundSelect.innerHTML = state.funds
-    .map(fund => `<option value="${fund.id}" ${fund.id === activeFundId ? "selected" : ""}>${escapeHtml(fund.name)} / ${escapeHtml(fund.code)}</option>`)
-    .join("");
-}
-
-let metricsAnimated = false;
-const reduceMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-function setMetric(node, target, format) {
-  if (!node) return;
-  if (metricsAnimated || reduceMotion()) { node.textContent = format(target); return; }
-  const start = performance.now();
-  const duration = 900;
-  (function frame(now) {
-    const t = Math.min(1, (now - start) / duration);
-    const eased = 1 - Math.pow(1 - t, 3);
-    node.textContent = format(target * eased);
-    if (t < 1) requestAnimationFrame(frame);
-    else node.textContent = format(target);
-  })(start);
-}
-
-function renderTopMetrics() {
-  const totals = allStats();
-  const pnl = totals.value - totals.cost;
-  setMetric(el("metricFunds"), state.funds.length, v => String(Math.round(v)));
-  setMetric(el("metricPositions"), totals.positions, v => String(Math.round(v)));
-  setMetric(el("metricValue"), totals.value, v => money(v));
-  if (el("metricPnl")) {
-    el("metricPnl").className = pnl >= 0 ? "positive" : "negative";
-    setMetric(el("metricPnl"), pnl, v => `${pnl >= 0 ? "+" : ""}${money(v)}`);
-  }
-  if (el("heroFundCount")) el("heroFundCount").textContent = String(state.funds.length).padStart(2, "0");
-  metricsAnimated = true;
-}
-
-// Home page: one live tile per fund - return, model value, positions, and a pulse that
-// goes green while the quote feed is responding. Return uses stored (close-based) prices
-// so it never invents intraday movement; clicking a tile opens that fund on the fund page.
-function renderFundTiles() {
-  const wrap = el("fundTiles");
-  if (!wrap) return;
-  const live = Object.keys(liveQuotes).length > 0;
-  wrap.innerHTML = state.funds.map(fund => {
-    const stats = fundStats(fund);
-    const pos = fund.holdings.length;
-    const sign = stats.returnPct >= 0 ? "positive" : "negative";
-    return `
-      <a class="fund-tile" href="fund.html" data-fund="${escapeHtml(fund.id)}" aria-label="${escapeHtml(fund.name)}, ${signed(stats.returnPct)} return, ${money(stats.value)}">
-        <div class="fund-tile-top">
-          <span class="fund-tile-name">${escapeHtml(fund.name)}</span>
-          <span class="fund-tile-live${live ? " on" : ""}"><i></i>${live ? "Live" : "Idle"}</span>
-        </div>
-        <strong class="fund-tile-return ${sign}">${signed(stats.returnPct)}</strong>
-        <div class="fund-tile-foot">
-          <span>${money(stats.value)}</span>
-          <span>${pos} position${pos === 1 ? "" : "s"}</span>
+      <a class="fund-card" href="fund.html" data-fund="${escapeHtml(f.id)}">
+        <span class="risk-label ${riskClass(f.risk)}">${escapeHtml(riskLabel(f.risk))}</span>
+        <h3>${escapeHtml(f.name)}</h3>
+        <p>${escapeHtml((f.description || "").split(".")[0] + ".")}</p>
+        <div class="fund-card-foot">
+          <span class="ret ${ret >= 0 ? "positive" : "negative"}">${signed(ret)}</span>
+          <span class="lbl">YTD return</span>
+          <span class="sep">|</span>
+          <span class="lbl">${f.holdings.length} positions</span>
         </div>
       </a>`;
   }).join("");
-  wrap.querySelectorAll(".fund-tile").forEach(tile => {
-    tile.addEventListener("click", () => {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeFundId: tile.dataset.fund })); } catch (_) { /* ignore */ }
+
+  if (el("stripFunds")) el("stripFunds").textContent = `${funds.length} funds`;
+}
+
+/* ---------------- Funds page ---------------- */
+function renderFundsPage() {
+  const picker = el("fundPicker");
+  if (!picker) return;
+
+  picker.innerHTML = funds.map(f => {
+    const ret = fundReturn(f);
+    return `
+      <button class="pick" role="tab" aria-selected="${f.id === activeFundId}" data-fund="${escapeHtml(f.id)}">
+        <span class="risk-label ${riskClass(f.risk)}">${escapeHtml(riskLabel(f.risk))}</span>
+        <span class="pick-arrow" aria-hidden="true">›</span>
+        <h3>${escapeHtml(f.name)}</h3>
+        <p>${escapeHtml((f.description || "").split(".")[0] + ".")}</p>
+        <span class="pick-foot">
+          <span class="ret ${ret >= 0 ? "positive" : "negative"}">${signed(ret)}</span>
+          <span class="lbl">YTD return</span>
+        </span>
+      </button>`;
+  }).join("");
+
+  $$(".pick", picker).forEach(btn => btn.addEventListener("click", () => {
+    activeFundId = btn.dataset.fund;
+    $$(".pick", picker).forEach(b => b.setAttribute("aria-selected", b === btn));
+    renderFundDetail();
+  }));
+
+  renderFundDetail();
+}
+
+function renderFundDetail() {
+  const fund = funds.find(f => f.id === activeFundId) || funds[0];
+  if (!fund || !el("detailName")) return;
+
+  const ret = fundReturn(fund);
+  el("detailName").textContent = fund.name;
+  el("detailDesc").textContent = fund.description || "";
+  const retNode = el("detailReturn");
+  retNode.textContent = signed(ret);
+  retNode.className = ret >= 0 ? "positive" : "negative";
+  el("detailPositions").textContent = String(fund.holdings.length);
+
+  const body = el("topHoldings");
+  if (body) {
+    body.innerHTML = fund.holdings.slice(0, 4).map(h => `
+      <tr>
+        <td>${escapeHtml(h.company || h.ticker)}</td>
+        <td>${Number(h.weight || 0).toFixed(1)}%</td>
+      </tr>`).join("");
+  }
+
+  drawChart(ret);
+}
+
+// Deterministic wiggle around the fund's real return, so the shape is stable per fund.
+function drawChart(finalReturn) {
+  const svg = el("fundChart");
+  if (!svg) return;
+  svg.removeAttribute("preserveAspectRatio");
+
+  const W = 560, H = 232, padL = 46, padR = 12, padT = 14, padB = 30;
+  const points = 34;
+  const span = Math.max(6, Math.abs(finalReturn) * 1.8);
+  const seedBase = (activeFundId || "x").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+
+  const series = [];
+  for (let i = 0; i < points; i++) {
+    const t = i / (points - 1);
+    const drift = finalReturn * t;
+    const wobble = Math.sin(t * 8 + seedBase) * span * 0.13 + Math.sin(t * 19 + seedBase * 0.7) * span * 0.06;
+    series.push(i === points - 1 ? finalReturn : drift + wobble);
+  }
+
+  const x = i => padL + (i / (points - 1)) * (W - padL - padR);
+  const y = v => padT + (1 - (v + span) / (span * 2)) * (H - padT - padB);
+
+  const line = series.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+  const area = `${line} L ${x(points - 1).toFixed(1)} ${y(-span)} L ${padL} ${y(-span)} Z`;
+
+  const ticks = [span, span / 2, 0, -span / 2, -span];
+  const grid = ticks.map(v => `
+    <line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W - padR}" y2="${y(v).toFixed(1)}"
+          stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="3 5"/>
+    <text x="${padL - 10}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end"
+          fill="#6a7280" font-size="10" font-family="IBM Plex Mono, monospace">${v >= 0 ? "+" : ""}${v.toFixed(0)}%</text>
+  `).join("");
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "May"];
+  const labels = months.map((m, i) => {
+    const px = padL + (i / (months.length - 1)) * (W - padL - padR);
+    return `<text x="${px.toFixed(1)}" y="${H - 8}" text-anchor="middle" fill="#6a7280" font-size="10"
+             font-family="IBM Plex Mono, monospace">${m} '26</text>`;
+  }).join("");
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2563eb" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${grid}
+    <path d="${area}" fill="url(#fillGrad)"/>
+    <path d="${line}" fill="none" stroke="#4d8bff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    ${labels}
+  `;
+}
+
+/* ---------------- Commentary ---------------- */
+const CATS = [
+  { key: "markets", label: "Markets", cls: "tag-markets" },
+  { key: "macro", label: "Macro", cls: "tag-macro" },
+  { key: "portfolio", label: "Portfolio", cls: "tag-portfolio" },
+  { key: "sentiment", label: "Sentiment", cls: "tag-sentiment" }
+];
+
+async function hydrateCommentary() {
+  const list = el("brief");
+  if (!list) return;
+  try {
+    const res = await fetch("/api/research", { headers: { accept: "application/json" } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const briefs = data?.briefs || [];
+    if (!briefs.length) return;
+
+    // Featured = newest brief.
+    const b = briefs[0];
+    if (el("featTitle")) {
+      if (b.lede) el("featTitle").textContent = b.lede;
+      if (el("featDate")) el("featDate").textContent = formatDate(b.date);
+      if (el("featBody")) el("featBody").textContent = b.market || b.why || b.moves || "";
+    }
+
+    // The rest become rows.
+    const rows = briefs.slice(1);
+    if (rows.length) {
+      list.innerHTML = rows.map((brief, i) => {
+        const cat = CATS[i % CATS.length];
+        return `
+          <a class="note-row" href="commentary.html" data-cat="${cat.key}">
+            <span class="tag-pill ${cat.cls}">${cat.label}</span>
+            <span class="date">${escapeHtml(formatDate(brief.date))}</span>
+            <h3>${escapeHtml(brief.lede || brief.market || "Daily note")}</h3>
+            <span class="read">Read <span aria-hidden="true">→</span></span>
+          </a>`;
+      }).join("");
+    }
+    initFilters();
+  } catch (error) {
+    // Keep the placeholder notes.
+  }
+}
+
+async function renderHomeNote() {
+  if (!el("homeNoteTitle")) return;
+  try {
+    const res = await fetch("/api/research", { headers: { accept: "application/json" } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const b = data?.briefs?.[0];
+    if (!b) return;
+    if (b.lede) el("homeNoteTitle").textContent = b.lede;
+    if (el("homeNoteDate")) el("homeNoteDate").textContent = formatDate(b.date);
+    if (el("homeNoteSub") && (b.market || b.moves)) el("homeNoteSub").textContent = b.market || b.moves;
+  } catch (error) {
+    // Keep the placeholder.
+  }
+}
+
+/* ---------------- Filters + search ---------------- */
+function initFilters() {
+  $$(".chips").forEach(group => {
+    if (group.dataset.bound === "1") return; // may run again after live data loads
+    group.dataset.bound = "1";
+    const chips = $$(".chip", group);
+    chips.forEach(chip => chip.addEventListener("click", () => {
+      chips.forEach(c => c.setAttribute("aria-selected", c === chip));
+      applyFilter(chip.dataset.filter);
+    }));
+  });
+}
+
+function applyFilter(filter) {
+  const rows = [...$$(".note-row"), ...$$(".res-row")];
+  rows.forEach(row => {
+    const show = !filter || filter === "all" || row.dataset.cat === filter;
+    row.style.display = show ? "" : "none";
+  });
+}
+
+function initSearch() {
+  const input = el("researchSearch");
+  if (!input) return;
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    $$(".res-row").forEach(row => {
+      row.style.display = !q || row.textContent.toLowerCase().includes(q) ? "" : "none";
     });
   });
 }
 
-function renderSummary() {
-  if (!fundSummary) return;
-  const fund = activeFund();
-  if (!fund) return;
-  const stats = fundStats(fund);
-  const benchmark = stats.returnPct - 4.2;
-  const daily = stats.returnPct / 12;
-
-  fundSummary.innerHTML = `
-    <div class="summary-main">
-      <span class="micro-label">${escapeHtml(fund.code)} · ${escapeHtml(fund.risk)}</span>
-      <h3>${escapeHtml(fund.name)}</h3>
-      <p>${escapeHtml(fund.description || "No mandate added yet.")}</p>
-    </div>
-    <div class="summary-stat"><span class="micro-label">Model value</span><strong>${money(stats.value)}</strong></div>
-    <div class="summary-stat"><span class="micro-label">Open P/L</span><strong class="${stats.pnl >= 0 ? "positive" : "negative"}">${stats.pnl >= 0 ? "+" : ""}${money(stats.pnl)}</strong></div>
-    <div class="summary-stat"><span class="micro-label">Return</span><strong class="${stats.returnPct >= 0 ? "positive" : "negative"}">${signed(stats.returnPct)}</strong></div>
-  `;
-
-  // Performance panel figures
-  if (el("perfFundCode")) el("perfFundCode").textContent = fund.code;
-  setSignedText("scoreReturn", stats.returnPct);
-  setSignedText("scoreBenchmark", benchmark);
-  setSignedText("scoreDaily", daily, 2);
-  setSignedText("chartReturn", stats.returnPct);
-  if (el("chartSubline")) el("chartSubline").textContent = `${fund.name} vs S&P 500 · illustrative`;
-}
-
-function setSignedText(id, value, digits = 1) {
-  const node = el(id);
-  if (!node) return;
-  node.textContent = signed(value, digits);
-  node.className = value >= 0 ? "positive" : "negative";
-}
-
-function renderHoldings() {
-  if (!holdingsBody) return;
-  const fund = activeFund();
-  const holdings = fund?.holdings || [];
-  holdingsBody.innerHTML = holdings.map(item => {
-    const value = item.shares * item.currentPrice;
-    const cost = item.shares * item.entryPrice;
-    const returnPct = cost ? ((value - cost) / cost) * 100 : 0;
-    return `
-      <tr>
-        <td>
-          <div class="asset-cell">
-            <span class="asset-badge">${escapeHtml(item.ticker.slice(0, 5))}</span>
-            <span class="asset-meta">
-              <strong>${escapeHtml(item.ticker)}</strong>
-              <span title="${escapeHtml(item.thesis || item.company || "")}">${escapeHtml(item.company || item.thesis || "")}</span>
-            </span>
-          </div>
-        </td>
-        <td>${number(item.weight, 1)}%</td>
-        <td>${number(item.shares, 4)}</td>
-        <td>${money(item.entryPrice, 2)}</td>
-        <td>${money(item.currentPrice, 2)}</td>
-        <td><strong>${money(value)}</strong></td>
-        <td class="${returnPct >= 0 ? "positive" : "negative"}"><strong>${signed(returnPct)}</strong></td>
-      </tr>
-    `;
-  }).join("");
-
-  if (emptyState) emptyState.classList.toggle("visible", holdings.length === 0);
-  if (holdingsTable) holdingsTable.style.display = holdings.length ? "table" : "none";
-}
-
-function renderWinnersLosers() {
-  if (!winnersLosers) return;
-  const fund = activeFund();
-  const holdings = (fund?.holdings || []).map(item => {
-    const value = item.shares * item.currentPrice;
-    const cost = item.shares * item.entryPrice;
-    const returnPct = cost ? ((value - cost) / cost) * 100 : 0;
-    return { ...item, returnPct };
-  }).sort((a, b) => b.returnPct - a.returnPct);
-
-  const winners = holdings.slice(0, 3);
-  const losers = [...holdings].reverse().slice(0, 3);
-  if (el("wlCount")) el("wlCount").textContent = `${holdings.length} positions`;
-
-  const column = (title, items, type) => `
-    <div class="score-card">
-      <span class="micro-label">${title}</span>
-      ${items.length ? items.map(item => `
-        <div class="wl-row">
-          <div>
-            <strong class="tkr">${escapeHtml(item.ticker)}</strong>
-            <p>${escapeHtml(item.company || item.thesis || "")}</p>
-          </div>
-          <strong class="${type === "winner" ? "positive" : "negative"}">${signed(item.returnPct)}</strong>
-        </div>
-      `).join("") : `<p style="margin-top:12px;color:var(--muted);">No positions yet.</p>`}
-    </div>
-  `;
-
-  winnersLosers.innerHTML = column("Winners", winners, "winner") + column("Losers", losers, "loser");
-}
-
-let liveQuotes = {};
-
-function renderTape() {
-  if (!marketTape) return;
-  // One entry per unique ticker across all funds.
-  const seen = new Map();
-  state.funds.forEach(fund => fund.holdings.forEach(item => {
-    if (!seen.has(item.ticker)) seen.set(item.ticker, item);
-  }));
-  let items = [...seen.values()];
-  if (!items.length) items = [{ ticker: "WTR", entryPrice: 1, currentPrice: 1 }];
-
-  const markup = items.map(item => {
-    const live = liveQuotes[item.ticker];
-    const price = live ? live.price : item.currentPrice;
-    const movePct = live && Number.isFinite(live.changePct)
-      ? live.changePct
-      : (item.entryPrice ? ((item.currentPrice - item.entryPrice) / item.entryPrice) * 100 : 0);
-    return `<span class="tape-item"><span>${escapeHtml(item.ticker)}</span><span>${money(price, 2)}</span><b class="${movePct < 0 ? "negative" : ""}">${movePct < 0 ? "▼" : "▲"} ${signed(movePct, 2)}</b></span>`;
-  }).join("");
-  marketTape.innerHTML = `<div class="tape-group">${markup}</div><div class="tape-group" aria-hidden="true">${markup}</div>`;
-}
-
-// Pulls live quotes from the /api/quotes Pages Function. If it is not there
-// (opened as a local file, offline, or no API key set), the ticker quietly
-// keeps using the manually entered prices.
-// Index ETFs that feed the "Market at a glance" panel in the wrap.
-const GLANCE = [["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["DIA", "Dow Jones"], ["GLD", "Gold"], ["TLT", "Long bonds"]];
-
-function renderGlance() {
-  const wrap = el("glanceRows");
-  if (!wrap) return;
-  wrap.innerHTML = GLANCE.map(([sym, label]) => {
-    const q = liveQuotes[sym];
-    let val = "·", cls = "";
-    if (q && Number.isFinite(q.changePct)) {
-      cls = q.changePct >= 0 ? "pos" : "neg";
-      val = `${q.changePct >= 0 ? "+" : ""}${q.changePct.toFixed(2)}%`;
-    }
-    return `<div class="g-row"><span>${label}</span><b class="${cls}">${val}</b></div>`;
-  }).join("");
-}
-
+/* ---------------- Live quotes ---------------- */
 async function refreshQuotes() {
-  const fundSyms = state.funds.flatMap(fund => fund.holdings.map(h => h.ticker));
-  const symbols = [...new Set([...fundSyms, ...GLANCE.map(g => g[0])])];
+  // Only pages that actually show prices need the quote feed.
+  if (!el("homeFunds") && !el("fundPicker")) return;
+  const symbols = [...new Set(funds.flatMap(f => f.holdings.map(h => h.ticker)))];
   if (!symbols.length) return;
   try {
     const res = await fetch(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}`, {
@@ -446,376 +332,102 @@ async function refreshQuotes() {
     });
     if (!res.ok) return;
     const data = await res.json();
-    if (!data || !data.quotes || !Object.keys(data.quotes).length) return;
-    liveQuotes = data.quotes;
-    renderTape();
-    renderFundTiles();
-    renderGlance();
+    const quotes = data?.quotes;
+    if (!quotes || !Object.keys(quotes).length) return;
+    funds.forEach(f => f.holdings.forEach(h => {
+      const q = quotes[h.ticker];
+      if (q && Number.isFinite(q.price) && q.price > 0) h.currentPrice = q.price;
+    }));
+    renderHome();
+    renderFundDetail();
   } catch (error) {
-    // No live feed available; the fallback ticker stays as-is.
+    // Stored prices stay in place.
   }
 }
 
-/* ---------------- Performance chart ---------------- */
-function renderChart() {
-  if (!chartSvg) return;
-  const fund = activeFund();
-  if (!fund) return;
-  const stats = fundStats(fund);
-  const benchmarkFinal = Math.max(-12, stats.returnPct - 4.2);
-  const fundSeries = buildSeries(stats.returnPct, 12, 3.1);
-  const benchSeries = buildSeries(benchmarkFinal, 12, 1.8);
-  chartSvg.innerHTML = `
-    <defs>
-      <linearGradient id="fundFill" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#0969ff" stop-opacity="0.22"/>
-        <stop offset="100%" stop-color="#0969ff" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    ${renderGrid()}
-    <path d="${areaPath(fundSeries, 680, 240)}" fill="url(#fundFill)"></path>
-    <path d="${linePath(benchSeries, 680, 240)}" fill="none" stroke="rgba(87,101,125,.55)" stroke-width="2.5" stroke-dasharray="8 8"></path>
-    <path d="${linePath(fundSeries, 680, 240)}" fill="none" stroke="var(--accent)" stroke-width="3.5"></path>
-  `;
-}
-
-function buildSeries(finalValue, count = 12, wobble = 2) {
-  const series = [];
-  for (let i = 0; i < count; i++) {
-    const t = i / (count - 1);
-    const curve = finalValue * t;
-    const noise = Math.sin(i * 0.9) * wobble * (1 - t * 0.2) + Math.cos(i * 0.42) * wobble * 0.35;
-    series.push(curve + noise);
-  }
-  return series;
-}
-
-function linePath(series, width, height) {
-  const min = Math.min(...series, -10);
-  const max = Math.max(...series, 10);
-  const pad = 14;
-  const scaleY = value => {
-    const n = (value - min) / (max - min || 1);
-    return height - pad - n * (height - pad * 2);
-  };
-  const scaleX = index => (index / (series.length - 1)) * width;
-  return series.map((value, index) => `${index === 0 ? "M" : "L"}${scaleX(index)} ${scaleY(value)}`).join(" ");
-}
-
-function areaPath(series, width, height) {
-  return `${linePath(series, width, height)} L ${width} ${height - 8} L 0 ${height - 8} Z`;
-}
-
-function renderGrid() {
-  return [35, 95, 155, 215].map(y => `<line x1="0" y1="${y}" x2="680" y2="${y}" stroke="rgba(10,13,18,.075)" stroke-width="1" />`).join("");
-}
-
-/* ---------------- Preferences ---------------- */
-function applyPrefs() {
-  if (!el("prefRisk")) return;
-  const prefs = loadPrefs();
-  el("prefRisk").value = prefs.risk;
-  if (el("prefHorizon")) el("prefHorizon").value = prefs.horizon;
-  if (el("prefDepth")) el("prefDepth").value = prefs.depth;
-  if (el("prefMaxPosition")) el("prefMaxPosition").value = prefs.maxPosition;
-  if (el("prefIndustries")) el("prefIndustries").value = prefs.industries;
-  if (el("prefWatch")) el("prefWatch").value = prefs.watch;
-}
-
-function savePrefs() {
-  const prefs = {
-    risk: el("prefRisk").value,
-    horizon: el("prefHorizon")?.value || defaultPrefs.horizon,
-    depth: el("prefDepth")?.value || defaultPrefs.depth,
-    maxPosition: el("prefMaxPosition")?.value || defaultPrefs.maxPosition,
-    industries: el("prefIndustries")?.value || "",
-    watch: el("prefWatch")?.value || ""
-  };
-  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
-  showToast("Preferences saved.");
-}
-
-/* ---------------- Toast + reveals ---------------- */
-function showToast(message) {
-  if (!toast) return;
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2500);
-}
-
-function showAllReveals() {
-  document.querySelectorAll(".reveal:not(.visible)").forEach(el => {
-    el.classList.add("visible");
-    el.style.opacity = "";
-    el.style.transform = "";
-  });
-}
-
-function observeReveals() {
-  const targets = [...document.querySelectorAll(".reveal:not(.visible)")];
-  if (!targets.length) return;
-  if (!("IntersectionObserver" in window) || reduceMotion()) {
-    targets.forEach(target => target.classList.add("visible"));
-    return;
-  }
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add("visible");
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.12, rootMargin: "0px 0px -7% 0px" });
-  targets.forEach(target => observer.observe(target));
-}
-
-// Keep hover motion restrained. The visual response is handled in CSS with
-// border, fill and arrow movement instead of bouncy scale effects.
-function initHoverSprings() {}
-
-/* ---------------- Master render ---------------- */
-function render() {
-  if (!state.funds.length) {
-    state.funds = cloneDefaults();
-    activeFundId = state.funds[0].id;
-  }
-  if (!state.funds.some(fund => fund.id === activeFundId)) activeFundId = state.funds[0].id;
-  renderFundCards();
-  renderFundSelect();
-  renderTopMetrics();
-  renderFundTiles();
-  renderHomeFunds();
-  renderSummary();
-  renderHoldings();
-  renderWinnersLosers();
-  renderChart();
-  renderTape();
-  initHoverSprings();
-  saveState();
-}
-
-/* ---------------- Hero network canvas (interactive) ---------------- */
-function initNet() {
-  cycleCaption();
-}
-
-// Cycle the hero caption so it reads like the agents are talking to each other.
-function cycleCaption() {
-  const caption = document.getElementById("meshCaption");
-  if (!caption) return;
-  const lines = [
-    "News → Portfolio: RKLB launch contract logged",
-    "Macro → Portfolio: inflation cooling, rates steady",
-    "Sentiment → Portfolio: AI hardware mood positive",
-    "Portfolio → hold: Whitewater concentration high",
-    "Debate → trim the software overweight? Not yet."
-  ];
-  let i = 0;
-  setInterval(() => {
-    i = (i + 1) % lines.length;
-    caption.style.opacity = "0";
-    setTimeout(() => { caption.textContent = lines[i]; caption.style.opacity = "1"; }, 260);
-  }, 3400);
-}
-
-/* ---------------- Navigation (mobile hamburger) ---------------- */
-function initNav() {
-  const hamburger = el("hamburger");
-  if (!hamburger) return;
-  const close = () => document.body.classList.remove("nav-open");
-  hamburger.addEventListener("click", () => document.body.classList.toggle("nav-open"));
-  document.querySelectorAll(".mobile-nav a").forEach(link => link.addEventListener("click", close));
-  document.addEventListener("keydown", event => { if (event.key === "Escape") close(); });
-}
-
-/* ---------------- Wiring ---------------- */
-// Read-only dashboard: viewers can switch the active fund and save the
-// preferences that steer the AI. Portfolios are managed by the AI, not by hand.
-function initEvents() {
-  fundSelect?.addEventListener("change", () => { activeFundId = fundSelect.value; render(); });
-  el("savePrefsButton")?.addEventListener("click", savePrefs);
-}
-
-/* ---------------- Live data from the AI backend (D1) ---------------- */
-// Upgrades the built-in defaults to whatever the AI is currently running.
-// Silently keeps the defaults if the API isn't there (opened locally, not yet deployed).
-async function hydrateFromApi() {
+/* ---------------- Live funds from D1 ---------------- */
+async function hydrateFunds() {
   try {
     const res = await fetch("/api/funds", { headers: { accept: "application/json" } });
     if (!res.ok) return;
     const data = await res.json();
     if (!data?.funds?.length) return;
-    state.funds = data.funds.map(f => ({
-      id: f.code,
-      name: f.name,
-      code: f.code,
-      risk: f.risk,
-      description: f.description,
-      holdings: (f.holdings || []).map(h => ({ id: h.ticker, ...h }))
+    const live = data.funds.filter(f => (f.holdings || []).length);
+    if (!live.length) return;
+    funds = live.map(f => ({
+      id: f.code, code: f.code, name: f.name, risk: f.risk, description: f.description,
+      holdings: (f.holdings || []).map(h => ({
+        ticker: h.ticker, company: h.company, weight: h.weight,
+        entryPrice: h.entryPrice, currentPrice: h.currentPrice
+      }))
     }));
-    if (!state.funds.some(fund => fund.id === activeFundId)) activeFundId = state.funds[0].id;
-    render();
+    if (!funds.some(f => f.id === activeFundId)) activeFundId = funds[0].id;
+    renderHome();
+    renderFundsPage();
   } catch (error) {
-    // Keep the defaults.
+    // Defaults stay.
   }
 }
 
-// Home page: fill the Market Wrap from the newest brief. The overview becomes the headline,
-// and the market / moves / why fields become the flowing read below it.
-async function renderMarketWrap() {
-  const head = el("wrapHead");
-  if (!head) return;
-  try {
-    const res = await fetch("/api/research", { headers: { accept: "application/json" } });
-    if (!res.ok) return;
-    const data = await res.json();
-    const b = data?.briefs?.[0];
-    if (!b) return;
-    if (b.lede) head.textContent = b.lede;
-    const meta = el("wrapMeta");
-    if (meta && b.date) {
-      const d = new Date(`${b.date}T00:00:00`);
-      meta.innerHTML = `${d.toLocaleDateString("en-NZ", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}<br>US market close`;
-    }
-    const report = el("wrapReport");
-    const paras = [b.market, b.moves, b.why].filter(Boolean);
-    if (report && paras.length) {
-      report.innerHTML = paras.map(p => `<p>${escapeHtml(p)}</p>`).join("")
-        + `<p class="wrap-byline">Written by the Watercooler desk. Four agents argued it out. One decision.</p>`;
-    }
-    // Same brief drives the "What the agents did" tab.
-    const setAgent = (key, val) => {
-      const node = document.querySelector(`[data-agent="${key}"]`);
-      if (node && val) node.textContent = val;
-    };
-    setAgent("news", b.news);
-    setAgent("macro", b.market);
-    setAgent("sentiment", b.sentiment);
-    setAgent("why", b.why);
-    setAgent("moves", b.moves);
-  } catch (error) {
-    // Keep the placeholder wrap.
-  }
+/* ---------------- Nav, subscribe, reveals ---------------- */
+function initNav() {
+  const burger = el("hamburger");
+  if (!burger) return;
+  const close = () => document.body.classList.remove("nav-open");
+  burger.addEventListener("click", () => document.body.classList.toggle("nav-open"));
+  $$(".mobile-nav a").forEach(a => a.addEventListener("click", close));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
 }
 
-// Home page holdings tab: a fund switcher + a table of the selected fund's positions.
-function renderHomeFunds() {
-  const sw = el("homeFundSwitch");
-  if (!sw) return;
-  sw.innerHTML = state.funds.map((f, i) =>
-    `<button role="tab" aria-selected="${i === 0}" data-fund="${escapeHtml(f.id)}">${escapeHtml(f.name)} · ${escapeHtml(f.risk)}</button>`
-  ).join("");
-  sw.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => {
-    sw.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === btn));
-    renderHomeHoldings(btn.dataset.fund);
-  }));
-  renderHomeHoldings(state.funds[0]?.id);
+function toast(message) {
+  const node = el("toast");
+  if (!node) return;
+  node.textContent = message;
+  node.classList.add("visible");
+  setTimeout(() => node.classList.remove("visible"), 3200);
 }
 
-function renderHomeHoldings(fundId) {
-  const body = el("homeHoldings");
-  if (!body) return;
-  const fund = state.funds.find(f => f.id === fundId) || state.funds[0];
-  if (!fund) return;
-  const note = el("homeFundNote");
-  if (note) note.textContent = fund.description || "";
-  body.innerHTML = fund.holdings.map(h => {
-    const entry = Number(h.entryPrice) || 0;
-    const now = Number(h.currentPrice) || 0;
-    const ret = entry ? ((now - entry) / entry * 100) : 0;
-    const cls = ret >= 0 ? "pos" : "neg";
-    return `<tr>
-      <td><span class="h-tk">${escapeHtml(h.ticker)}</span><span class="h-co">${escapeHtml(h.company || "")}</span></td>
-      <td class="num">${Number(h.weight || 0).toFixed(0)}%</td>
-      <td class="num">${money(entry, 2)}</td>
-      <td class="num">${money(now, 2)}</td>
-      <td class="h-ret ${cls}">${signed(ret)}</td>
-    </tr>`;
-  }).join("");
-}
-
-function initDesk() {
-  const tabs = [el("tab-agents"), el("tab-holdings")].filter(Boolean);
-  if (!tabs.length) return;
-  tabs.forEach(t => t.addEventListener("click", () => {
-    tabs.forEach(x => {
-      const on = x === t;
-      x.setAttribute("aria-selected", on);
-      const panel = document.getElementById(x.getAttribute("aria-controls"));
-      if (panel) panel.hidden = !on;
-    });
-  }));
-}
-
-async function hydrateResearch() {
-  const container = document.getElementById("brief");
-  if (!container) return;
-  try {
-    const res = await fetch("/api/research", { headers: { accept: "application/json" } });
-    if (!res.ok) return;
-    const data = await res.json();
-    if (!data?.briefs?.length) return;
-    container.innerHTML = data.briefs.map((brief, index) => briefDayHtml(brief, index === 0)).join("");
-    observeReveals();
-  } catch (error) {
-    // Keep the static placeholder brief.
-  }
-}
-
-function briefDayHtml(brief, isLatest) {
-  const agents = [
-    ["01", "News", brief.news],
-    ["02", "Macro", brief.market],
-    ["03", "Sentiment", brief.sentiment],
-    ["04", "Portfolio", brief.why],
-    ["05", "The call", brief.moves]
-  ].filter(([, , value]) => value);
-  const dateObj = brief.date ? new Date(`${brief.date}T00:00:00`) : null;
-  const dstr = dateObj
-    ? dateObj.toLocaleDateString("en-NZ", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-    : (brief.date || "");
-  return `
-    <article class="cday reveal">
-      <div class="cday-head">
-        <span class="cday-date">${escapeHtml(dstr)}</span>
-        ${isLatest ? '<span class="cday-tag">Latest</span>' : ""}
-      </div>
-      ${brief.lede ? `<p class="cday-lede">${escapeHtml(brief.lede)}</p>` : ""}
-      <div class="cagents">
-        ${agents.map(([n, name, value]) => `<div class="cagent${name === "The call" ? " call" : ""}"><span class="cagent-name"><b>${n}</b> ${escapeHtml(name)}</span><p>${escapeHtml(value)}</p></div>`).join("")}
-      </div>
-    </article>
-  `;
-}
-
-/* ---------------- Page motion ---------------- */
-function initPageMotion() {
-  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add("is-ready")));
-
-  document.querySelectorAll('a[href$=".html"]').forEach(link => {
-    link.addEventListener("click", event => {
-      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const href = link.getAttribute("href");
-      if (!href || href.startsWith("#") || link.target === "_blank") return;
-      event.preventDefault();
-      document.body.classList.add("page-leaving");
-      setTimeout(() => { window.location.href = href; }, 180);
-    });
+function initSubscribe() {
+  const form = el("subForm");
+  if (!form) return;
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    const email = el("subEmail");
+    if (!email || !email.value.trim()) return;
+    toast("Thanks. You're on the list.");
+    form.reset();
   });
 }
 
+function observeReveals() {
+  const targets = $$(".reveal:not(.visible)");
+  if (!targets.length) return;
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !("IntersectionObserver" in window)) {
+    targets.forEach(t => t.classList.add("visible"));
+    return;
+  }
+  const io = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("visible");
+      obs.unobserve(entry.target);
+    });
+  }, { rootMargin: "0px 0px -8% 0px", threshold: .08 });
+  targets.forEach(t => io.observe(t));
+}
+
 /* ---------------- Boot ---------------- */
-initPageMotion();
-if (el("year")) el("year").textContent = new Date().getFullYear();
 initNav();
-initEvents();
-initNet();
-initDesk();
-applyPrefs();
-render();
+initSubscribe();
+initFilters();
+initSearch();
+renderHome();
+renderFundsPage();
 observeReveals();
+
+hydrateFunds();
+hydrateCommentary();
+renderHomeNote();
 refreshQuotes();
 setInterval(refreshQuotes, 60000);
-hydrateFromApi();
-hydrateResearch();
-renderMarketWrap();

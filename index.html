@@ -3,128 +3,168 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#111111" />
+  <meta name="theme-color" content="#000000" />
   <title>LiquidAssets · AI-run funds</title>
-  <meta name="description" content="An AI-run fund. Four agents research, argue and build a portfolio aimed at beating the S&P 500, using their own modelling and open-source intelligence. Built in Hamilton, New Zealand." />
+  <meta name="description" content="Three funds. Clear thinking. Simple investment strategies updated daily, with research and commentary written clearly." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="favicon.png" />
 </head>
-<body class="home-page">
-  <div class="announcement-bar">
-    <span>Full reasoning, no black box.</span>
-    <a href="research.html">Read the research <span>↗</span></a>
-  </div>
+<body>
 
-  <header class="site-header">
-    <a class="brand" href="index.html" aria-label="LiquidAssets home">
-      <span class="wordmark"><b>~</b> liquidassets</span>
-    </a>
-    <nav class="desktop-nav" aria-label="Primary">
-      <a href="index.html" aria-current="page">Home</a>
-      <a href="commentary.html">Commentary</a>
-      <a href="fund.html">Funds</a>
-      <a href="research.html">Research</a>
-    </nav>
-    <div class="header-actions">
-      <span class="header-live"><i></i>Live</span>
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="brand" href="index.html">LiquidAssets</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="fund.html">Funds</a>
+        <a href="commentary.html">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-primary btn-sm" href="#subscribe">Subscribe <span aria-hidden="true">↗</span></a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
-      <span></span><span></span><span></span>
-    </button>
   </header>
 
   <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
     <a href="index.html" aria-current="page">Home</a>
-    <a href="commentary.html">Commentary</a>
     <a href="fund.html">Funds</a>
+    <a href="commentary.html">Commentary</a>
     <a href="research.html">Research</a>
-    <span class="mobile-nav-foot">AI-run funds.</span>
   </nav>
 
-  <main>
+  <main class="wrap">
+
+    <!-- Hero -->
     <section class="hero">
-      <div class="hero-rule" aria-hidden="true"></div>
-      <div class="hero-layout">
-        <div class="hero-copy">
-          <h1 aria-label="AI runs the funds.">
-            <span class="hero-line"><span>AI runs</span></span>
-            <span class="hero-line accent-line"><span>the funds.</span></span>
+      <div class="hero-grid">
+        <div>
+          <h1>
+            <span>Three funds.</span>
+            <span class="accent">Clear thinking.</span>
           </h1>
-          <p class="hero-intro hero-enter" data-enter="3">
-            LiquidAssets is an autonomous fund manager. Four AI agents research the market,
-            argue it out, and rebalance three live funds every trading day. Full reasoning, no black box.
-          </p>
-          <div class="hero-actions hero-enter" data-enter="4">
-            <a class="button button-accent" href="fund.html"><span>See the funds</span><span aria-hidden="true">↗</span></a>
-            <a class="text-link" href="research.html">Read the research <span>↘</span></a>
+          <p class="lede">Simple investment strategies, updated daily. Research and commentary, written clearly.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="fund.html">View funds <span aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost" href="#subscribe">Subscribe for notes <span aria-hidden="true">↗</span></a>
           </div>
         </div>
-
-        <div class="hero-visual hero-enter" data-enter="2" aria-hidden="true">
-          <img class="hero-bullbear" src="bullbear.png" alt="" width="1122" height="1402" />
+        <div class="hero-art">
+          <img src="bullbear.png" alt="" width="1122" height="1402" />
         </div>
-      </div>
-
-      <div class="hero-foot hero-enter" data-enter="5">
-        <span>Research</span><span>Debate</span><span>Rebalance</span><span>Explain</span>
       </div>
     </section>
 
-    <section class="market-wrap shell reveal" aria-label="Daily market wrap">
-      <p class="wrap-eyebrow">Market wrap</p>
-      <div class="wrap-head">
-        <h2 id="wrapHead">The desk's latest read lands here after each close.</h2>
-        <div class="wrap-meta" id="wrapMeta"></div>
+    <!-- Feature strip -->
+    <section class="strip reveal" aria-label="What you get">
+      <div class="strip-item">
+        <span class="strip-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </span>
+        <span id="stripFunds">3 funds</span>
       </div>
-      <div class="wrap-grid">
-        <div class="wrap-report" id="wrapReport">
-          <p>Once the agents run, this is where they explain what the market did, what they decided, and the trades they made. In plain English, no jargon.</p>
-        </div>
-        <aside class="glance">
-          <h3>Market at a glance</h3>
-          <div id="glanceRows">
-            <div class="g-row"><span>S&amp;P 500</span><b>·</b></div>
-            <div class="g-row"><span>Nasdaq 100</span><b>·</b></div>
-            <div class="g-row"><span>Dow Jones</span><b>·</b></div>
-            <div class="g-row"><span>Gold</span><b>·</b></div>
-            <div class="g-row"><span>Long bonds</span><b>·</b></div>
+      <div class="strip-item">
+        <span class="strip-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg>
+        </span>
+        <span>Daily notes</span>
+      </div>
+      <div class="strip-item">
+        <span class="strip-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+        </span>
+        <span>Clear research</span>
+      </div>
+    </section>
+
+    <!-- Funds -->
+    <section class="reveal">
+      <h2 class="section-title">The funds</h2>
+      <div class="fund-cards" id="homeFunds">
+        <a class="fund-card" href="fund.html">
+          <span class="risk-label risk-high">High risk</span>
+          <h3>Whitewater</h3>
+          <p>Aggressive growth.</p>
+          <div class="fund-card-foot">
+            <span class="ret positive">+0.0%</span><span class="lbl">YTD return</span>
+            <span class="sep">|</span><span class="lbl">8 positions</span>
           </div>
-        </aside>
+        </a>
+        <a class="fund-card" href="fund.html">
+          <span class="risk-label risk-med">Medium risk</span>
+          <h3>Tidewater</h3>
+          <p>Balanced approach.</p>
+          <div class="fund-card-foot">
+            <span class="ret positive">+0.0%</span><span class="lbl">YTD return</span>
+            <span class="sep">|</span><span class="lbl">8 positions</span>
+          </div>
+        </a>
+        <a class="fund-card" href="fund.html">
+          <span class="risk-label risk-low">Low risk</span>
+          <h3>Stillwater</h3>
+          <p>Capital preservation.</p>
+          <div class="fund-card-foot">
+            <span class="ret positive">+0.0%</span><span class="lbl">YTD return</span>
+            <span class="sep">|</span><span class="lbl">8 positions</span>
+          </div>
+        </a>
       </div>
     </section>
 
-    <section class="metrics-section shell section-tight">
-      <div class="fund-tiles reveal" id="fundTiles" aria-label="Live fund overview"></div>
+    <!-- Latest note -->
+    <section class="reveal">
+      <h2 class="section-title">From the latest note</h2>
+      <a class="note-card" href="commentary.html" id="homeNote">
+        <div>
+          <div class="note-date" id="homeNoteDate">Today</div>
+          <h3 id="homeNoteTitle">The desk's latest read lands here after each close.</h3>
+          <p id="homeNoteSub">Markets are noisy. Discipline compounds.</p>
+        </div>
+        <svg class="spark" viewBox="0 0 240 62" fill="none" aria-hidden="true">
+          <path d="M2 52 L26 46 L50 49 L74 38 L98 42 L122 30 L146 33 L170 22 L194 26 L214 12 L238 8"
+                stroke="#4d8bff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 58 L238 58" stroke="rgba(255,255,255,.13)" stroke-width="1" stroke-dasharray="3 4"/>
+        </svg>
+        <span class="link-blue">Read note <span aria-hidden="true">→</span></span>
+      </a>
     </section>
 
-    <section class="market-wrap shell" style="padding-top:0;">
-      <a class="text-link" href="commentary.html">See what the agents did <span>↘</span></a>
+    <!-- Subscribe -->
+    <section class="subscribe reveal" id="subscribe">
+      <span class="sub-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>
+      </span>
+      <div>
+        <h3>Get the daily note.</h3>
+        <p>Clear thinking in your inbox, every morning.</p>
+      </div>
+      <div>
+        <form class="sub-form" id="subForm">
+          <input type="email" id="subEmail" placeholder="Enter your email" aria-label="Email address" required />
+          <button class="btn btn-primary" type="submit">Subscribe <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="sub-fine">No spam. Unsubscribe anytime.</p>
+      </div>
     </section>
+
+    <footer class="site-foot">
+      <a class="brand" href="index.html">LiquidAssets</a>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="fund.html">Funds</a>
+        <a href="commentary.html">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <span class="foot-copy">© 2026 LiquidAssets</span>
+    </footer>
+
   </main>
-
-  <div class="wave-band" aria-hidden="true">
-    <div class="wave-layer wave-3"></div>
-    <div class="wave-layer wave-2"></div>
-    <div class="wave-layer wave-1"></div>
-  </div>
-
-  <footer class="site-footer shell">
-    <a class="brand" href="index.html" aria-label="LiquidAssets home">
-      <span class="wordmark"><b>~</b> liquidassets</span>
-    </a>
-    <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
-    <nav class="footer-nav">
-      <a href="index.html">Home</a>
-      <a href="commentary.html">Commentary</a>
-      <a href="fund.html">Funds</a>
-      <a href="research.html">Research</a>
-      <span>Josh McWilliam 2026</span>
-    </nav>
-  </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>

@@ -3,266 +3,155 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#111111" />
+  <meta name="theme-color" content="#000000" />
   <title>LiquidAssets · Funds</title>
-  <meta name="description" content="The LiquidAssets AI fund desk: live holdings, target weights, performance against the S&P 500, winners and losers, and the four agents that run it." />
+  <meta name="description" content="Three strategies. Different risk levels. Same discipline. Live holdings, performance and positioning for every LiquidAssets fund." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="favicon.png" />
 </head>
-<body class="fund-page">
+<body>
 
-  <div class="announcement-bar">
-    <span>Full reasoning, no black box.</span>
-    <a href="research.html">Read the research <span>↗</span></a>
-  </div>
-
-  <!-- ===== Header ===== -->
-  <header class="site-header">
-    <a class="brand" href="index.html" aria-label="LiquidAssets home">
-      <span class="wordmark"><b>~</b> liquidassets</span>
-    </a>
-    <nav class="desktop-nav" aria-label="Primary">
-      <a href="index.html">Home</a>
-      <a href="commentary.html">Commentary</a>
-      <a href="fund.html" aria-current="page">Funds</a>
-      <a href="research.html">Research</a>
-    </nav>
-    <div class="header-actions">
-      <span class="header-live"><i></i>Live</span>
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="brand" href="index.html">LiquidAssets</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="fund.html" aria-current="page">Funds</a>
+        <a href="commentary.html">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-primary btn-sm" href="#subscribe">Subscribe <span aria-hidden="true">↗</span></a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
-      <span></span><span></span><span></span>
-    </button>
   </header>
 
   <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
     <a href="index.html">Home</a>
-    <a href="commentary.html">Commentary</a>
     <a href="fund.html" aria-current="page">Funds</a>
+    <a href="commentary.html">Commentary</a>
     <a href="research.html">Research</a>
-    <span class="mobile-nav-foot">AI-run funds.</span>
   </nav>
 
-  <!-- ===== Ticker ===== -->
+  <main class="wrap">
 
-  <main>
-    <!-- ===== Our Funds ===== -->
-    <section class="shell section-tight">
-      <div class="section-heading reveal">
-        <div>
-          <div class="eyebrow">Three models</div>
-          <h2>Our Funds.</h2>
-        </div>
-      </div>
-      <div class="fund-grid" id="fundGrid" data-selectable="true"></div>
+    <section class="page-head">
+      <h1 class="page-title">Funds<b>.</b></h1>
+      <p class="page-sub">Three strategies. Different risk levels. Same discipline.</p>
     </section>
 
-    <!-- ===== Holdings ===== -->
-    <section class="shell section-tight" id="fundDesk">
-      <div class="section-heading reveal">
-        <div>
-          <div class="eyebrow">Portfolio</div>
-          <h2>Holdings.</h2>
+    <!-- Fund picker -->
+    <div class="fund-picker" id="fundPicker" role="tablist" aria-label="Funds"></div>
+
+    <!-- Selected fund detail -->
+    <section class="detail reveal">
+      <div>
+        <h2 id="detailName">Whitewater</h2>
+        <p id="detailDesc">Aggressive growth. Backs bold, fast-moving companies for outsized upside.</p>
+        <div class="stat-row">
+          <div class="stat"><span>YTD return</span><strong id="detailReturn" class="positive">+0.0%</strong></div>
+          <div class="stat"><span>Positions</span><strong id="detailPositions">8</strong></div>
+          <div class="stat"><span>Inception</span><strong id="detailInception">Jan 15, 2026</strong></div>
         </div>
       </div>
-      <div class="desk reveal">
-        <div class="toolbar">
-          <div>
-            <span class="micro-label">Active fund</span>
-            <select id="fundSelect" aria-label="Select active fund"></select>
+      <div>
+        <div class="chart-head">
+          <h4>Performance (Net of Fees)</h4>
+          <div class="ranges" role="tablist" aria-label="Chart range">
+            <button role="tab" aria-selected="false">1M</button>
+            <button role="tab" aria-selected="false">3M</button>
+            <button role="tab" aria-selected="true">YTD</button>
+            <button role="tab" aria-selected="false">1Y</button>
+            <button role="tab" aria-selected="false">ALL</button>
           </div>
         </div>
-        <div class="summary-strip" id="fundSummary"></div>
-        <div class="table-wrap">
-          <table class="holdings-table" id="holdingsTable">
-            <thead>
-              <tr>
-                <th>Asset</th>
-                <th>Target</th>
-                <th>Units</th>
-                <th>Avg.</th>
-                <th>Last</th>
-                <th>Value</th>
-                <th>Return</th>
-              </tr>
-            </thead>
-            <tbody id="holdingsBody"></tbody>
-          </table>
-          <div class="empty-state" id="emptyState">
-            <span>○</span>
-            <h3>No positions yet.</h3>
-            <p>This fund is not holding anything right now.</p>
-          </div>
-        </div>
+        <svg class="chart" id="fundChart" viewBox="0 0 560 232" preserveAspectRatio="none" aria-label="Fund performance"></svg>
       </div>
     </section>
 
-    <!-- ===== Performance ===== -->
-    <section class="shell section-tight">
-      <div class="section-heading reveal">
-        <div>
-          <div class="eyebrow">Performance</div>
-          <h2>Fund vs S&amp;P.</h2>
-        </div>
-      </div>
-      <div class="perf-grid">
-        <div class="chart-box reveal">
-          <div class="chart-meta">
-            <div>
-              <span class="micro-label">Illustrative until live history is wired</span>
-              <strong id="chartReturn" class="positive">+0.0%</strong>
-            </div>
-            <span id="chartSubline">Fund vs benchmark</span>
-          </div>
-          <svg id="chartSvg" viewBox="0 0 680 240" preserveAspectRatio="none" aria-label="Illustrative performance chart"></svg>
-          <div class="axis-labels"><span>Start</span><span>30D</span><span>60D</span><span>90D</span></div>
-        </div>
-        <div class="score-grid reveal" data-delay="1">
-          <article class="score-card">
-            <span class="micro-label">Fund return</span>
-            <strong id="scoreReturn" class="positive">+0.0%</strong>
-          </article>
-          <article class="score-card">
-            <span class="micro-label">Vs S&amp;P 500</span>
-            <strong id="scoreBenchmark" class="positive">+0.0%</strong>
-          </article>
-          <article class="score-card">
-            <span class="micro-label">Daily return</span>
-            <strong id="scoreDaily" class="positive">+0.0%</strong>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== Winners & losers ===== -->
-    <section class="shell section-tight">
-      <div class="panel reveal">
+    <!-- Holdings + strategy -->
+    <div class="two-col">
+      <section class="panel reveal">
         <div class="panel-head">
+          <h3>Top Holdings</h3>
+          <a class="link-blue" href="commentary.html">View all <span aria-hidden="true">↗</span></a>
+        </div>
+        <table class="holdings">
+          <thead><tr><th>Company</th><th>Weight</th></tr></thead>
+          <tbody id="topHoldings"></tbody>
+        </table>
+        <p class="panel-note">Holdings updated daily after market close.</p>
+      </section>
+
+      <section class="panel reveal">
+        <div class="panel-head"><h3>Strategy</h3></div>
+        <div class="strat">
+          <span class="strat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l5-6 4 3 5-7 4 4"/></svg>
+          </span>
           <div>
-            <span class="micro-label">Today</span>
-            <h3>Winners &amp; losers.</h3>
+            <h4>Selective growth</h4>
+            <p>High-conviction investments in durable growth businesses.</p>
           </div>
-          <span class="chip" id="wlCount">0 positions</span>
         </div>
-        <div class="panel-body">
-          <div class="wl-grid" id="winnersLosers"></div>
+        <div class="strat">
+          <span class="strat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>
+          </span>
+          <div>
+            <h4>Disciplined risk</h4>
+            <p>Position sizing and risk controls to protect capital.</p>
+          </div>
         </div>
+        <div class="strat">
+          <span class="strat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 4"/></svg>
+          </span>
+          <div>
+            <h4>Long-term focus</h4>
+            <p>Built for compounding, not short-term noise.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Subscribe -->
+    <section class="subscribe reveal" id="subscribe">
+      <span class="sub-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>
+      </span>
+      <div>
+        <h3>Stay one step ahead.</h3>
+        <p>Daily research, fund updates, and market context straight to your inbox.</p>
+      </div>
+      <div>
+        <form class="sub-form" id="subForm">
+          <input type="email" id="subEmail" placeholder="Enter your email" aria-label="Email address" required />
+          <button class="btn btn-primary" type="submit">Subscribe <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="sub-fine">No spam. Unsubscribe anytime.</p>
       </div>
     </section>
 
-    <!-- ===== Agents ===== -->
-    <section class="shell section-tight">
-      <div class="section-heading reveal">
-        <div>
-          <div class="eyebrow">Coming soon</div>
-          <h2>The agents.</h2>
-        </div>
-      </div>
-      <div class="agents-grid">
-        <article class="agent-card reveal" data-delay="0">
-          <span class="chip">News</span>
-          <h4>News Agent</h4>
-          <p>Reads company news, earnings and the market events that move a stock.</p>
-        </article>
-        <article class="agent-card reveal" data-delay="1">
-          <span class="chip">Macro</span>
-          <h4>Macro Agent</h4>
-          <p>Watches rates, inflation, jobs and growth, and what they mean for the fund.</p>
-        </article>
-        <article class="agent-card reveal" data-delay="2">
-          <span class="chip">Sentiment</span>
-          <h4>Sentiment Agent</h4>
-          <p>Reads the mood around companies, sectors and themes you care about.</p>
-        </article>
-        <article class="agent-card reveal" data-delay="3">
-          <span class="chip">Portfolio</span>
-          <h4>Portfolio Agent</h4>
-          <p>Weighs it all up and proposes what to add, trim, hold or cut, and why.</p>
-        </article>
-      </div>
-    </section>
+    <footer class="site-foot">
+      <a class="brand" href="index.html">LiquidAssets</a>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="fund.html">Funds</a>
+        <a href="commentary.html">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <span class="foot-copy">© 2026 LiquidAssets</span>
+    </footer>
 
-    <!-- ===== Preferences ===== -->
-    <section class="shell section-tight">
-      <div class="panel reveal">
-        <div class="panel-head">
-          <div>
-            <span class="micro-label">Personalisation</span>
-            <h3>Preferences.</h3>
-          </div>
-          <button class="button button-accent button-small" id="savePrefsButton">Save</button>
-        </div>
-        <div class="panel-body">
-          <div class="prefs-grid">
-            <label class="field">
-              <span>Risk profile</span>
-              <select id="prefRisk">
-                <option>Aggressive</option>
-                <option selected>Balanced</option>
-                <option>Defensive</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Time horizon</span>
-              <select id="prefHorizon">
-                <option>Under 1 year</option>
-                <option>1 to 3 years</option>
-                <option selected>3 to 5 years</option>
-                <option>5 years plus</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Research depth</span>
-              <select id="prefDepth">
-                <option selected>Concise</option>
-                <option>Detailed</option>
-                <option>Thesis first</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Max position size %</span>
-              <input id="prefMaxPosition" type="number" min="0" max="100" step="1" placeholder="25" />
-            </label>
-            <label class="field full">
-              <span>Preferred industries</span>
-              <input id="prefIndustries" placeholder="Space, AI, Defence, Infrastructure, Technology, Energy, Construction" />
-            </label>
-            <label class="field full">
-              <span>Companies or themes to prioritise</span>
-              <textarea id="prefWatch" rows="3" placeholder="Stocks you like, themes you care about, signals you want prioritised"></textarea>
-            </label>
-          </div>
-          <p class="field-note">Saved to this browser.</p>
-        </div>
-      </div>
-    </section>
   </main>
-
-  <!-- ===== Wave ===== -->
-  <div class="wave-band" aria-hidden="true">
-    <div class="wave-layer wave-3"></div>
-    <div class="wave-layer wave-2"></div>
-    <div class="wave-layer wave-1"></div>
-  </div>
-
-  <!-- ===== Footer ===== -->
-  <footer class="site-footer shell">
-    <a class="brand" href="index.html" aria-label="LiquidAssets home">
-      <span class="wordmark"><b>~</b> liquidassets</span>
-    </a>
-    <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
-    <nav class="footer-nav">
-      <a href="index.html">Home</a>
-      <a href="commentary.html">Commentary</a>
-      <a href="fund.html">Funds</a>
-      <a href="research.html">Research</a>
-      <span>Josh McWilliam 2026</span>
-    </nav>
-  </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>

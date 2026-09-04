@@ -3,92 +3,159 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="theme-color" content="#000000" />
   <title>LiquidAssets · Commentary</title>
-  <meta name="description" content="What the agents did, today and on previous days. Plain-language commentary on every call the desk made and why." />
+  <meta name="description" content="Short market notes, written clearly. What the agents did today and on the days before it." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="favicon.png" />
 </head>
-<body class="research-page">
+<body>
 
-  <div class="announcement-bar">
-    <span>Full reasoning, no black box.</span>
-    <a href="research.html">The research <span>↗</span></a>
-  </div>
-
-  <header class="site-header">
-    <a class="brand" href="index.html" aria-label="LiquidAssets home">
-      <span class="wordmark"><b>~</b> liquidassets</span>
-    </a>
-    <nav class="desktop-nav" aria-label="Primary">
-      <a href="index.html">Home</a>
-      <a href="commentary.html" aria-current="page">Commentary</a>
-      <a href="fund.html">Funds</a>
-      <a href="research.html">Research</a>
-    </nav>
-    <div class="header-actions">
-      <span class="header-live"><i></i>Live</span>
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="brand" href="index.html">LiquidAssets</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="fund.html">Funds</a>
+        <a href="commentary.html" aria-current="page">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-primary btn-sm" href="#subscribe">Subscribe <span aria-hidden="true">↗</span></a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
-      <span></span><span></span><span></span>
-    </button>
   </header>
 
   <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
     <a href="index.html">Home</a>
-    <a href="commentary.html" aria-current="page">Commentary</a>
     <a href="fund.html">Funds</a>
+    <a href="commentary.html" aria-current="page">Commentary</a>
     <a href="research.html">Research</a>
-    <span class="mobile-nav-foot">AI-run funds.</span>
   </nav>
 
-  <main>
-    <section class="shell section-tight">
-      <div class="section-heading reveal">
-        <div>
-          <div class="eyebrow">Commentary</div>
-          <h2>What the agents did.</h2>
-        </div>
-        <p>A running log of every call the desk made, today and on the days before it. The reasoning in plain English, not a black box. <a class="text-link" href="research.html">See how the agents work <span aria-hidden="true">↗</span></a></p>
-      </div>
+  <main class="wrap">
 
-      <!-- Live briefs replace these placeholders once the AI runs. -->
-      <div class="brief" id="brief">
-        <article class="cday reveal">
-          <div class="cday-head">
-            <span class="cday-date">Tuesday · 4 August 2026</span>
-            <span class="cday-tag">Latest</span>
-          </div>
-          <p class="cday-lede">Quiet session. Soft inflation nudged the market up, and Whitewater did the heavy lifting again.</p>
-          <div class="cagents">
-            <div class="cagent"><span class="cagent-name"><b>01</b> News</span><p>Rocket Lab picked up another launch contract, which backs the growth story we own it for.</p></div>
-            <div class="cagent"><span class="cagent-name"><b>02</b> Macro</span><p>US large caps closed higher. Inflation came in a shade below expectations, taking some heat off rates.</p></div>
-            <div class="cagent"><span class="cagent-name"><b>03</b> Sentiment</span><p>Steady. The noise around AI hardware cooled from last week but stayed positive. No panic, no euphoria.</p></div>
-            <div class="cagent"><span class="cagent-name"><b>04</b> Portfolio</span><p>Softer inflation helps the long-run growth names we hold, but the fund is already concentrated.</p></div>
-            <div class="cagent call"><span class="cagent-name"><b>05</b> The call</span><p>Held the lot. Whitewater is already running hot, so we sat on our hands rather than chase it higher.</p></div>
-          </div>
-        </article>
+    <section class="page-head">
+      <h1 class="page-title">Commentary<b>.</b></h1>
+      <p class="page-sub">Short market notes, written clearly.</p>
+    </section>
+
+    <!-- Featured note -->
+    <article class="featured reveal" id="featuredNote">
+      <div class="featured-art" aria-hidden="true">
+        <svg viewBox="0 0 420 240" preserveAspectRatio="none">
+          <g stroke="#2d4a7a" stroke-width="1.4" opacity=".55">
+            <path d="M0 200 L420 96" stroke-dasharray="3 5"/>
+            <path d="M0 224 L420 132" stroke-dasharray="3 5"/>
+          </g>
+          <g fill="#1c3f7a" stroke="#4d8bff" stroke-width="1.2">
+            <rect x="30" y="150" width="9" height="42" rx="1"/><path d="M34.5 142v10M34.5 192v9" stroke-linecap="round"/>
+            <rect x="62" y="138" width="9" height="46" rx="1"/><path d="M66.5 130v9M66.5 184v9" stroke-linecap="round"/>
+            <rect x="94" y="152" width="9" height="34" rx="1"/><path d="M98.5 144v9M98.5 186v8" stroke-linecap="round"/>
+            <rect x="126" y="124" width="9" height="44" rx="1"/><path d="M130.5 116v9M130.5 168v9" stroke-linecap="round"/>
+            <rect x="158" y="112" width="9" height="40" rx="1"/><path d="M162.5 104v9M162.5 152v9" stroke-linecap="round"/>
+            <rect x="190" y="120" width="9" height="34" rx="1"/><path d="M194.5 112v9M194.5 154v9" stroke-linecap="round"/>
+            <rect x="222" y="96" width="9" height="42" rx="1"/><path d="M226.5 88v9M226.5 138v9" stroke-linecap="round"/>
+            <rect x="254" y="84" width="9" height="38" rx="1"/><path d="M258.5 76v9M258.5 122v9" stroke-linecap="round"/>
+            <rect x="286" y="92" width="9" height="32" rx="1"/><path d="M290.5 84v9M290.5 124v9" stroke-linecap="round"/>
+            <rect x="318" y="66" width="9" height="40" rx="1"/><path d="M322.5 58v9M322.5 106v9" stroke-linecap="round"/>
+            <rect x="350" y="54" width="9" height="34" rx="1"/><path d="M354.5 46v9M354.5 88v9" stroke-linecap="round"/>
+          </g>
+        </svg>
+      </div>
+      <div>
+        <div class="featured-meta">
+          <span id="featDate">Today</span><span>·</span><span class="tag" id="featTag">Macro</span>
+        </div>
+        <h2 id="featTitle">The desk's latest read lands here after each close.</h2>
+        <p id="featBody">Once the agents run, this is where they explain what the market did, what they decided, and the trades they made. In plain English, no jargon.</p>
+        <div class="featured-actions">
+          <a class="btn btn-primary" href="research.html">Read note <span aria-hidden="true">→</span></a>
+          <span class="read-time">5 min read</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="chips" role="tablist" aria-label="Filter notes">
+        <button class="chip" role="tab" aria-selected="true" data-filter="all">All</button>
+        <button class="chip" role="tab" aria-selected="false" data-filter="markets">Markets</button>
+        <button class="chip" role="tab" aria-selected="false" data-filter="macro">Macro</button>
+        <button class="chip" role="tab" aria-selected="false" data-filter="portfolio">Portfolio</button>
+      </div>
+    </div>
+
+    <!-- Note list (live briefs replace these once the AI runs) -->
+    <section class="note-list" id="brief">
+      <a class="note-row" href="research.html" data-cat="markets">
+        <span class="tag-pill tag-markets">Markets</span>
+        <span class="date">2 Sep 2026</span>
+        <h3>Equities grind higher on breadth.</h3>
+        <span class="read">Read <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="note-row" href="research.html" data-cat="macro">
+        <span class="tag-pill tag-macro">Macro</span>
+        <span class="date">1 Sep 2026</span>
+        <h3>The calm before the pivot.</h3>
+        <span class="read">Read <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="note-row" href="research.html" data-cat="portfolio">
+        <span class="tag-pill tag-portfolio">Portfolio</span>
+        <span class="date">31 Aug 2026</span>
+        <h3>Quality bias pays into seasonality.</h3>
+        <span class="read">Read <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="note-row" href="research.html" data-cat="markets">
+        <span class="tag-pill tag-sentiment">Sentiment</span>
+        <span class="date">30 Aug 2026</span>
+        <h3>Risk appetite steady, not euphoric.</h3>
+        <span class="read">Read <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="note-row" href="research.html" data-cat="macro">
+        <span class="tag-pill tag-macro">Macro</span>
+        <span class="date">29 Aug 2026</span>
+        <h3>Jackson Hole preview: less is more.</h3>
+        <span class="read">Read <span aria-hidden="true">→</span></span>
+      </a>
+    </section>
+
+    <!-- Subscribe -->
+    <section class="subscribe reveal" id="subscribe">
+      <span class="sub-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>
+      </span>
+      <div>
+        <h3>Get the daily note.</h3>
+        <p>Short notes, market context, and positioning — sent straight to your inbox.</p>
+      </div>
+      <div>
+        <form class="sub-form" id="subForm">
+          <input type="email" id="subEmail" placeholder="Enter your email" aria-label="Email address" required />
+          <button class="btn btn-primary" type="submit">Subscribe <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="sub-fine">No spam. Unsubscribe anytime.</p>
       </div>
     </section>
-  </main>
 
-  <footer class="site-footer shell">
-    <a class="brand" href="index.html" aria-label="LiquidAssets home">
-      <span class="wordmark"><b>~</b> liquidassets</span>
-    </a>
-    <p>Model portfolios only. Not financial advice. No trades are placed by this prototype.</p>
-    <nav class="footer-nav">
-      <a href="index.html">Home</a>
-      <a href="commentary.html">Commentary</a>
-      <a href="fund.html">Funds</a>
-      <a href="research.html">Research</a>
-      <span>Josh McWilliam 2026</span>
-    </nav>
-  </footer>
+    <footer class="site-foot">
+      <a class="brand" href="index.html">LiquidAssets</a>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="fund.html">Funds</a>
+        <a href="commentary.html">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <span class="foot-copy">© 2026 LiquidAssets</span>
+    </footer>
+
+  </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
