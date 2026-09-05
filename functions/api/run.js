@@ -1,15 +1,21 @@
 /**
  * POST /api/run - runs one AI decision cycle for all house funds.
  *
- * This is a real multi-agent pipeline, not one prompt wearing four hats:
+ * A full agent desk, in the order a real one works:
  *
  *   prices + news (Finnhub)
- *     -> News agent, Macro agent, Sentiment agent  (run in parallel, each writes a note)
- *     -> Portfolio agent  (reads the three notes + live prices, decides allocations + brief)
- *     -> holdings + brief saved to D1 -> the site reads the new state from /api/funds.
+ *     -> Analysts: News, Macro, Sentiment          (parallel, each writes a note)
+ *     -> Researchers: Bull vs Bear                 (parallel, argue the book independently)
+ *     -> Risk officer                              (stress-tests both cases per mandate, can veto)
+ *     -> Portfolio manager                         (weighs the lot, sets allocations + writes the note)
+ *     -> holdings + daily history snapshot + brief saved to D1
+ *     -> the site reads the new state from /api/funds and /api/research.
  *
- * Only the Portfolio agent has to return strict JSON. The three research agents return
- * plain text, so a wobble in one of them can never break the parse or the run.
+ * Only the Portfolio manager has to return strict JSON. Every other agent returns plain
+ * text, so a wobble in one of them degrades to a missing note, never a dead run.
+ *
+ * Seven agent calls plus the data fetches must stay inside Cloudflare's 50-subrequest cap
+ * on the free plan, which is what the subrequest budget constants below are for.
  *
  * Protected by a shared token so randoms can't trigger it (and rack up API cost):
  *   send header  x-run-token: <RUN_TOKEN>
@@ -49,15 +55,17 @@ export async function onRequestPost(context) {
     const holdingsByFund = {};
     for (const h of holdings) (holdingsByFund[h.fund_code] ||= []).push(h);
 
-    // 2. Live signals: prices for held names, macro ETFs for the macro read, and recent news.
-    const tickers = [...new Set(holdings.map(h => h.ticker))];
+    // 2. Live signals. Cloudflare's free plan allows 50 subrequests per invocation and every
+    // quote, news lookup and agent call is one of them, so each fetch is capped to keep the
+    // whole desk (7 agent calls) comfortably inside the budget.
+    const tickers = [...new Set(holdings.map(h => h.ticker))].slice(0, QUOTE_LIMIT);
     const [quotes, macro, news] = await Promise.all([
       fetchQuotes(tickers, env.FINNHUB_API_KEY),
       fetchQuotes(MACRO_TICKERS, env.FINNHUB_API_KEY),
-      fetchNews(tickers.slice(0, 8), env.FINNHUB_API_KEY)
+      fetchNews(tickers.slice(0, NEWS_LIMIT), env.FINNHUB_API_KEY)
     ]);
 
-    // 3. Research agents - three specialists, run in parallel, each returns a short note.
+    // 3. Analysts - three specialists in parallel, each returning a short note.
     const [newsNote, macroNote, sentimentNote] = await Promise.all([
       newsAgent(env, researchModel, news, tickers),
       macroAgent(env, researchModel, macro),
@@ -65,8 +73,24 @@ export async function onRequestPost(context) {
     ]);
     const research = { news: newsNote, macro: macroNote, sentiment: sentimentNote };
 
-    // 4. Portfolio agent - the only one that must return strict JSON.
-    const decision = await portfolioAgent(env, model, funds, holdingsByFund, quotes, research, capital);
+    // 3b. The book, described once and handed to every downstream agent.
+    const book = describeBook(funds, holdingsByFund, quotes);
+
+    // 4. Researchers - a bull and a bear build their cases independently, in parallel, so
+    // neither is anchored on the other's reasoning.
+    const [bullCase, bearCase] = await Promise.all([
+      bullAgent(env, researchModel, research, book),
+      bearAgent(env, researchModel, research, book)
+    ]);
+    const debate = { bull: bullCase, bear: bearCase };
+
+    // 5. Risk officer - stress-tests the debate against each fund's mandate before anything is sized.
+    const riskNote = await riskAgent(env, researchModel, research, debate, book);
+
+    // 6. Portfolio manager - weighs the lot. The only agent that must return strict JSON.
+    const decision = await portfolioAgent(
+      env, model, funds, holdingsByFund, quotes, research, debate, riskNote, book, capital
+    );
 
     // 4b. The AI can open tickers we never priced (a fresh build starts from an empty table, so
     // step 2 priced nothing, and any brand-new pick is unpriced too). Fetch quotes for those now,
@@ -76,7 +100,12 @@ export async function onRequestPost(context) {
         .map(h => String(h.ticker || "").toUpperCase().trim()))
         .filter(Boolean)
     )];
-    const unpriced = decided.filter(t => !quotes[t]);
+    // Whatever subrequests are left after the held quotes, macro, news and the seven agent
+    // calls can go on pricing brand-new picks. On a rebuild from empty that is nearly all of them.
+    const alreadySpent = tickers.length + MACRO_TICKERS.length
+      + Math.min(tickers.length, NEWS_LIMIT) + AGENT_CALLS;
+    const newPickBudget = Math.max(0, SUBREQUEST_CAP - SAFETY_MARGIN - alreadySpent);
+    const unpriced = decided.filter(t => !quotes[t]).slice(0, newPickBudget);
     if (unpriced.length) Object.assign(quotes, await fetchQuotes(unpriced, env.FINNHUB_API_KEY));
 
     // 5. Apply the decision to D1
@@ -144,7 +173,9 @@ export async function onRequestPost(context) {
 
     // 7. Log the run
     await env.DB.prepare("INSERT INTO runs (started_at, status, model, note) VALUES (?, ?, ?, ?)")
-      .bind(startedAt, "ok", model, `${tickers.length} tickers priced, research ${researchModel}, decision ${model}`).run();
+      .bind(startedAt, "ok", model,
+        `desk: 3 analysts + bull/bear debate + risk + PM | ${tickers.length} tickers priced | ` +
+        `research ${researchModel}, decision ${model}`).run();
 
     return json({ ok: true, at: now, model, fundsUpdated: (decision.funds || []).length });
   } catch (error) {
@@ -158,12 +189,21 @@ export async function onRequestPost(context) {
 
 /* ---------------- Signals ---------------- */
 
-// A compact palette of ETFs that stands in for "the market" so the Macro agent
-// reasons over real moves: broad indices, small caps, key sectors, bonds and gold.
-const MACRO_TICKERS = ["SPY", "QQQ", "DIA", "IWM", "XLK", "XLE", "XLF", "TLT", "GLD"];
+/* Subrequest budget. Cloudflare's free plan caps a single invocation at 50 outbound requests
+   (D1 calls do not count). The desk always spends 7 on agent calls, so the data fetches have
+   to fit in what is left. The new-pick allowance is worked out at runtime rather than fixed,
+   because a rebuild from an empty book spends nothing on held quotes and needs the room. */
+const SUBREQUEST_CAP = 50;
+const SAFETY_MARGIN = 4;
+const AGENT_CALLS = 7;
+const QUOTE_LIMIT = 24;
+const NEWS_LIMIT = 4;
+
+// A compact palette of ETFs that stands in for "the market" so the Macro agent reasons over
+// real moves. SPY doubles as the S&P benchmark recorded in the daily history snapshot.
+const MACRO_TICKERS = ["SPY", "QQQ", "IWM", "TLT", "GLD"];
 const MACRO_LABELS = {
-  SPY: "S&P 500", QQQ: "Nasdaq 100", DIA: "Dow", IWM: "Small caps",
-  XLK: "Tech sector", XLE: "Energy sector", XLF: "Financials sector",
+  SPY: "S&P 500", QQQ: "Nasdaq 100", IWM: "Small caps",
   TLT: "Long bonds", GLD: "Gold"
 };
 
@@ -210,7 +250,7 @@ async function newsAgent(env, model, news, tickers) {
   const user =
     `Held tickers: ${tickers.join(", ") || "(none yet)"}\n\nRecent headlines:\n${body}\n\n` +
     "Write 3 to 5 short bullet points on what actually matters for these positions today. If nothing is material, say so.";
-  return research(env, model, system, user);
+  return runAgent(env, model, system, user);
 }
 
 async function macroAgent(env, model, macro) {
@@ -222,7 +262,7 @@ async function macroAgent(env, model, macro) {
     "You are the Macro agent on an AI fund desk. Read the market-wide tape: risk-on or risk-off, which " +
     "sectors lead or lag, and what bonds (TLT) and gold (GLD) imply about rates and fear. " + HOUSE_STYLE;
   const user = `Today's macro tape:\n${body}\n\nWrite 3 to 4 short bullets on the regime and what it favours or punishes right now.`;
-  return research(env, model, system, user);
+  return runAgent(env, model, system, user);
 }
 
 async function sentimentAgent(env, model, holdings, quotes) {
@@ -236,41 +276,120 @@ async function sentimentAgent(env, model, holdings, quotes) {
     "You are the Sentiment agent on an AI fund desk. From today's price action across the held names, " +
     "read momentum and crowd mood: broad strength, broad flush, or rotation between names. " + HOUSE_STYLE;
   const user = `Today's moves in the held names:\n${body}\n\nWrite 2 to 4 short bullets on momentum and mood. Flag anything overheated or capitulating.`;
-  return research(env, model, system, user);
+  return runAgent(env, model, system, user);
 }
 
-// Runs one research agent. Never throws: a failed specialist degrades to a note, not a dead run.
-async function research(env, model, system, user) {
+// Runs one text agent. Never throws: a failed specialist degrades to a note, not a dead run.
+async function runAgent(env, model, system, user, maxTokens = 700) {
   try {
-    const text = await askClaude(env, model, system, user, 700);
+    const text = await askClaude(env, model, system, user, maxTokens);
     return text.trim() || "(no read)";
   } catch (error) {
     return `(agent unavailable: ${String(error).slice(0, 120)})`;
   }
 }
 
-/* ---------------- Portfolio agent ---------------- */
-async function portfolioAgent(env, model, funds, holdingsByFund, quotes, research, capital) {
+/* ---------------- Shared context ---------------- */
+// The three analyst notes, formatted once for every downstream agent.
+function deskNotes(research) {
+  return [
+    "ANALYST NOTES",
+    "\n[News]\n" + (research.news || "(none)"),
+    "\n[Macro]\n" + (research.macro || "(none)"),
+    "\n[Sentiment]\n" + (research.sentiment || "(none)")
+  ].join("\n");
+}
+
+// The current book: every fund, its mandate, and each position's price and return so far.
+function describeBook(funds, holdingsByFund, quotes) {
+  const lines = [];
+  for (const f of funds) {
+    lines.push(`\n${f.name} (${f.code}) - ${f.risk} - ${f.description}`);
+    const held = holdingsByFund[f.code] || [];
+    if (!held.length) lines.push("  (empty - needs building from scratch)");
+    for (const h of held) {
+      const q = quotes[h.ticker];
+      const price = q ? q.price : h.current_price;
+      const move = q && Number.isFinite(q.changePct) ? ` (${q.changePct.toFixed(2)}% today)` : "";
+      const ret = h.cost_basis ? ((price - h.cost_basis) / h.cost_basis * 100) : 0;
+      lines.push(
+        `  ${h.ticker} ${h.company || ""} | target ${h.weight}% | cost ${h.cost_basis} | now ${price}${move}` +
+        ` | return ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% since we opened it`
+      );
+    }
+  }
+  return lines.join("\n");
+}
+
+/* ---------------- Researchers: the bull / bear debate ---------------- */
+async function bullAgent(env, model, research, book) {
   const system =
-    "You are the Portfolio agent and head of desk at LiquidAssets, an AI fund manager running model " +
-    "portfolios only - no real trades are placed. Three research agents just reported: News, Macro and " +
-    "Sentiment. Weigh their notes against each fund's risk mandate and set today's allocations, then write " +
-    "the public daily note. You run a CONTINUING book, not a blank slate each day: you are judged on steady " +
-    "returns over time, so prize conviction and low turnover. Default to holding good positions. " +
+    "You are the Bull researcher on an AI fund desk. Argue the constructive case for the book as it stands: " +
+    "where the upside is, which positions have earned more room, what the desk is underrating. " +
+    "You are not a cheerleader. A weak point gets torn apart by the Bear, so only make arguments you can " +
+    "defend with something in the notes or the numbers. " + HOUSE_STYLE;
+  const user =
+    `${deskNotes(research)}\n\nTHE BOOK:\n${book}\n\n` +
+    "Make the bull case in 4 to 6 short bullets. Name specific holdings and say what you would add to or hold.";
+  return runAgent(env, model, system, user);
+}
+
+async function bearAgent(env, model, research, book) {
+  const system =
+    "You are the Bear researcher on an AI fund desk. Argue the sceptical case for the book as it stands: " +
+    "what is stretched, what is crowded, which positions have run too far, what breaks if the mood turns. " +
+    "Do not be contrarian for its own sake. Only make arguments you can defend with something in the notes " +
+    "or the numbers. " + HOUSE_STYLE;
+  const user =
+    `${deskNotes(research)}\n\nTHE BOOK:\n${book}\n\n` +
+    "Make the bear case in 4 to 6 short bullets. Name specific holdings and say what you would trim or avoid.";
+  return runAgent(env, model, system, user);
+}
+
+/* ---------------- Risk officer ---------------- */
+async function riskAgent(env, model, research, debate, book) {
+  const system =
+    "You are the Risk officer on an AI fund desk. You do not pick winners. You judge whether the book is " +
+    "safe for each fund's stated mandate: concentration, correlation between holdings, how much of a fund " +
+    "sits in one theme, and whether the defensive fund is actually defensive. You have the authority to veto. " +
+    "Be specific about which fund has which problem. " + HOUSE_STYLE;
+  const user =
+    `${deskNotes(research)}\n\nTHE BOOK:\n${book}\n\n` +
+    `BULL CASE:\n${debate.bull}\n\nBEAR CASE:\n${debate.bear}\n\n` +
+    "Write 3 to 5 short bullets. For each fund, flag any real risk in the current book or in what the bull " +
+    "is proposing, and say plainly what the Portfolio manager must not do today.";
+  return runAgent(env, model, system, user);
+}
+
+/* ---------------- Portfolio agent ---------------- */
+async function portfolioAgent(env, model, funds, holdingsByFund, quotes, research, debate, riskNote, book, capital) {
+  const system =
+    "You are the Portfolio manager and head of desk at LiquidAssets, an AI fund manager running model " +
+    "portfolios only - no real trades are placed. Your desk has already reported: three analysts (News, " +
+    "Macro, Sentiment), a Bull and a Bear who argued the book, and a Risk officer who stress-tested it. " +
+    "Your job is to weigh all of it and set today's allocations, then write the public daily note. " +
+    "The Risk officer can veto: if they say a fund must not do something, you do not do it. " +
+    "Where the Bull and Bear disagree, pick a side and say why in one plain sentence. " +
+    "You run a CONTINUING book, not a blank slate each day: you are judged on steady returns over time, so " +
+    "prize conviction and low turnover. Default to holding good positions. " +
     "Never invent prices; use the ones provided. " +
     "The public note is read by ordinary people with no finance background, so write it the way you would " +
     "explain your day to a friend who has never bought a share. Warm, direct, jargon-free. " +
     "Do not use em dashes anywhere.";
-  const user = buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital);
+  const user = buildPortfolioPrompt(funds, holdingsByFund, quotes, research, debate, riskNote, book, capital);
   return callClaudeJson(env, model, system, user);
 }
 
-function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) {
+function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, debate, riskNote, book, capital) {
   const lines = [];
-  lines.push("RESEARCH DESK NOTES (from your three agents):");
-  lines.push("\n[News agent]\n" + (research.news || "(none)"));
-  lines.push("\n[Macro agent]\n" + (research.macro || "(none)"));
-  lines.push("\n[Sentiment agent]\n" + (research.sentiment || "(none)"));
+  lines.push(deskNotes(research));
+
+  lines.push("\nTHE DEBATE (your two researchers argued this book independently):");
+  lines.push("\n[Bull case]\n" + (debate.bull || "(none)"));
+  lines.push("\n[Bear case]\n" + (debate.bear || "(none)"));
+
+  lines.push("\nRISK OFFICER (this one can veto you - do not override a hard no):");
+  lines.push("\n" + (riskNote || "(no risk review available)"));
 
   lines.push(`\nEach fund has notional capital of $${capital}. Set a target weight % per holding (roughly summing to 100% per fund). Hold 8 to 9 positions per fund, never fewer than 8, real tickers only. Respect each fund's risk mandate above all.`);
   lines.push("This runs at the market close: judge each existing position on its return since we opened it (shown per holding), let winners run, trim names that have got extended, and cut ones whose thesis has broken. Base today's decisions on that performance.");
@@ -288,20 +407,10 @@ function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) 
   lines.push("  - Across the whole book, favour industries that lean toward innovation: space, AI, tech, construction and healthcare. Keep a genuine mix and do not stack the same mega-cap in every fund; each fund should have its own character.");
   lines.push("  - Hold 8 to 9 positions per fund (never fewer than 8). Prefer real conviction picks over filler.");
   lines.push("\nCURRENT FUNDS AND HOLDINGS:");
-  for (const f of funds) {
-    lines.push(`\n${f.name} (${f.code}) - ${f.risk} - ${f.description}`);
-    const held = holdingsByFund[f.code] || [];
-    if (!held.length) lines.push("  (empty - build this fund from scratch)");
-    for (const h of held) {
-      const q = quotes[h.ticker];
-      const price = q ? q.price : h.current_price;
-      const move = q && Number.isFinite(q.changePct) ? ` (${q.changePct.toFixed(2)}% today)` : "";
-      const ret = h.cost_basis ? ((price - h.cost_basis) / h.cost_basis * 100) : 0;
-      lines.push(`  ${h.ticker} ${h.company || ""} | target ${h.weight}% | cost ${h.cost_basis} | now ${price}${move} | return ${ret >= 0 ? "+" : ""}${ret.toFixed(1)}% since we opened it`);
-    }
-  }
+  lines.push(book);
 
-  lines.push("\nDecide each fund's holdings for today - hold, add, trim, open or close - grounded in the desk notes, then write the public daily note.");
+  lines.push("\nDecide each fund's holdings for today - hold, add, trim, open or close - grounded in the analyst notes, the debate and the risk review, then write the public daily note.");
+  lines.push("Where the Bull and the Bear disagree on a name, come off the fence: pick a side and justify it in the holding's one-sentence reason.");
 
   lines.push("\nWRITING THE PUBLIC NOTE (this matters as much as the trades):");
   lines.push("The reader is a normal person with no finance background. They do not know what a tape, risk-off, breadth, basis points, flows or hedging are. Write so your mum could follow it.");
