@@ -81,6 +81,7 @@ export async function onRequestPost(context) {
 
     // 5. Apply the decision to D1
     const now = new Date().toISOString();
+    const snapshots = [];
     for (const fd of decision.funds || []) {
       const code = fd.code;
       if (!funds.some(f => f.code === code)) continue;
@@ -91,6 +92,7 @@ export async function onRequestPost(context) {
       await env.DB.prepare("DELETE FROM holdings WHERE fund_code = ?").bind(code).run();
 
       const inserts = [];
+      let fundValue = 0, fundCost = 0;
       for (const h of fd.holdings || []) {
         const ticker = String(h.ticker || "").toUpperCase().trim();
         if (!ticker) continue;
@@ -106,14 +108,31 @@ export async function onRequestPost(context) {
           "INSERT INTO holdings (fund_code, ticker, company, weight, cost_basis, shares, current_price, action, reason, updated_at) " +
           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         ).bind(code, ticker, h.company || "", weight, costBasis, shares, price, h.action || "hold", h.reason || "", now));
+        fundValue += shares * price;
+        fundCost += shares * costBasis;
       }
       if (inserts.length) await env.DB.batch(inserts);
+      snapshots.push({
+        code,
+        value: fundValue,
+        ret: fundCost ? ((fundValue - fundCost) / fundCost) * 100 : 0
+      });
+    }
+
+    // 5b. Snapshot today's value for every fund, plus the S&P proxy price, so the site can
+    // chart real performance against a real benchmark instead of guessing at a shape.
+    const today = now.slice(0, 10);
+    const spyPrice = macro?.SPY?.price || 0;
+    if (snapshots.length) {
+      await env.DB.prepare("DELETE FROM history WHERE snap_date = ?").bind(today).run();
+      await env.DB.batch(snapshots.map(s => env.DB.prepare(
+        "INSERT INTO history (fund_code, snap_date, value, return_pct, spy) VALUES (?, ?, ?, ?, ?)"
+      ).bind(s.code, today, s.value, s.ret, spyPrice)));
     }
 
     // 6. Save the brief - exactly one per day. Clear today's first so multiple runs in a
     // day overwrite the same brief instead of stacking duplicate posts.
     const b = decision.brief || {};
-    const today = now.slice(0, 10);
     await env.DB.prepare("DELETE FROM briefs WHERE brief_date = ?").bind(today).run();
     await env.DB.prepare(
       "INSERT INTO briefs (brief_date, market_overview, market, moves, sentiment, news, coming_up, why, created_at) " +
@@ -233,13 +252,15 @@ async function research(env, model, system, user) {
 /* ---------------- Portfolio agent ---------------- */
 async function portfolioAgent(env, model, funds, holdingsByFund, quotes, research, capital) {
   const system =
-    "You are the Portfolio agent and head of desk at Watercooler, an AI fund manager running model " +
+    "You are the Portfolio agent and head of desk at LiquidAssets, an AI fund manager running model " +
     "portfolios only - no real trades are placed. Three research agents just reported: News, Macro and " +
     "Sentiment. Weigh their notes against each fund's risk mandate and set today's allocations, then write " +
-    "the public daily brief. You run a CONTINUING book, not a blank slate each day: you are judged on steady " +
-    "returns over time, so prize conviction and low turnover. Default to holding good positions. Be decisive " +
-    "and plain-spoken, a little Kiwi in tone. Explain every call in one sentence. Never invent prices; use the " +
-    "ones provided. Do not use em dashes anywhere.";
+    "the public daily note. You run a CONTINUING book, not a blank slate each day: you are judged on steady " +
+    "returns over time, so prize conviction and low turnover. Default to holding good positions. " +
+    "Never invent prices; use the ones provided. " +
+    "The public note is read by ordinary people with no finance background, so write it the way you would " +
+    "explain your day to a friend who has never bought a share. Warm, direct, jargon-free. " +
+    "Do not use em dashes anywhere.";
   const user = buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital);
   return callClaudeJson(env, model, system, user);
 }
@@ -280,12 +301,32 @@ function buildPortfolioPrompt(funds, holdingsByFund, quotes, research, capital) 
     }
   }
 
-  lines.push("\nDecide each fund's holdings for today - hold, add, trim, open or close - grounded in the desk notes, then write a short plain-language daily brief.");
-  lines.push('\nReturn ONLY a JSON object, no markdown and no prose, with exactly this shape:');
+  lines.push("\nDecide each fund's holdings for today - hold, add, trim, open or close - grounded in the desk notes, then write the public daily note.");
+
+  lines.push("\nWRITING THE PUBLIC NOTE (this matters as much as the trades):");
+  lines.push("The reader is a normal person with no finance background. They do not know what a tape, risk-off, breadth, basis points, flows or hedging are. Write so your mum could follow it.");
+  lines.push("  - \"marketOverview\" is the HEADLINE. Make it a short, human hook, the way you would open a message to a friend. A question or a plain statement. Good shapes: \"Feeling nervous? We thought the same.\" / \"A quiet day, and we barely touched a thing.\" / \"Gold had a big day. Here is what we made of it.\"");
+  lines.push("  - Never write a headline that is a dense summary with a colon in the middle. Never put jargon in the headline. Keep it under about 12 words.");
+  lines.push("  - Every other field is 2 to 4 short sentences. Move in this order: what happened, what that means, what we did about it.");
+  lines.push("  - Write as \"we\" and \"our agents\". Talk to the reader as \"you\" where it helps.");
+  lines.push("  - If a market term is unavoidable, explain it in the same breath, for example \"hedging, which means buying a bit of protection in case things turn\".");
+  lines.push("  - Round numbers and say them plainly: \"gold is up about 2%\" beats \"XAU +1.97%\".");
+  lines.push("  - Banned phrasing: \"quiet tape\", \"nervous edge\", \"eke out\", \"risk-off\", \"risk-on\", \"constructive\", \"bid\", \"flows\", \"breadth\", \"positioning\", \"conviction\" used as a noun, and any sentence that assumes the reader already trades.");
+  lines.push("  - Always finish the thought. If you say the crowd is cautious, say what that means for the money we manage.");
+
+  lines.push("\nWhat each field should cover, all in that same plain voice:");
+  lines.push("  market      - what actually happened in the market today.");
+  lines.push("  moves       - what we bought, sold or held, and in which fund.");
+  lines.push("  sentiment   - how investors were feeling, and why that matters.");
+  lines.push("  news        - the news that mattered, and why it matters to what we own.");
+  lines.push("  comingUp    - what we are watching next, and why the reader should care.");
+  lines.push("  why         - the reasoning behind today's decision, spelled out simply.");
+
+  lines.push("\nReturn ONLY a JSON object, no markdown and no prose, with exactly this shape:");
   lines.push('{');
-  lines.push('  "marketOverview": "one or two sentences on the day",');
+  lines.push('  "marketOverview": "the plain-English headline hook",');
   lines.push('  "funds": [');
-  lines.push('    { "code": "WTR-AG", "holdings": [ { "ticker": "RKLB", "company": "Rocket Lab", "weight": 25, "action": "hold", "reason": "one sentence" } ] }');
+  lines.push('    { "code": "WTR-AG", "holdings": [ { "ticker": "RKLB", "company": "Rocket Lab", "weight": 25, "action": "hold", "reason": "one plain sentence" } ] }');
   lines.push('  ],');
   lines.push('  "brief": { "market": "...", "moves": "...", "sentiment": "...", "news": "...", "comingUp": "...", "why": "..." }');
   lines.push('}');

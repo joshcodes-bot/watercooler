@@ -17,7 +17,7 @@
 
   <header class="nav">
     <div class="wrap nav-in">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="nav-links" aria-label="Primary">
         <a href="index.html">Home</a>
         <a href="fund.html">Funds</a>
@@ -83,88 +83,35 @@
       </div>
     </article>
 
-    <!-- Search + filters -->
-    <div class="filter-bar">
-      <label class="search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
-        <input type="search" id="researchSearch" placeholder="Search research..." aria-label="Search research" />
-      </label>
-      <div class="chips" role="tablist" aria-label="Filter research">
-        <button class="chip" role="tab" aria-selected="true" data-filter="all">All</button>
-        <button class="chip" role="tab" aria-selected="false" data-filter="basics">Basics</button>
-        <button class="chip" role="tab" aria-selected="false" data-filter="agents">Agents</button>
-        <button class="chip" role="tab" aria-selected="false" data-filter="method">Method</button>
-        <button class="chip" role="tab" aria-selected="false" data-filter="technical">Technical</button>
-      </div>
-    </div>
-
-    <!-- Research index -->
-    <section class="note-list" id="researchList">
-      <a class="res-row" href="#idea" data-cat="basics">
-        <span class="res-cat cat-macro">Basics</span>
-        <div>
-          <h3>The idea, in a sentence</h3>
-          <p>A team of AI agents that behaves like a real investment desk.</p>
-        </div>
-        <span class="res-meta">3 Sep 2026 · 2 min read</span>
-        <span class="res-arrow" aria-hidden="true">→</span>
-      </a>
-      <a class="res-row" href="#team" data-cat="agents">
-        <span class="res-cat cat-ai">Agents</span>
-        <div>
-          <h3>Who sits on the desk</h3>
-          <p>News, macro, sentiment, a bull and a bear, a trader and a risk team.</p>
-        </div>
-        <span class="res-meta">3 Sep 2026 · 4 min read</span>
-        <span class="res-arrow" aria-hidden="true">→</span>
-      </a>
-      <a class="res-row" href="#why" data-cat="method">
-        <span class="res-cat cat-software">Method</span>
-        <div>
-          <h3>Why a team beats one model</h3>
-          <p>Arguments surface the weak points a single confident answer hides.</p>
-        </div>
-        <span class="res-meta">3 Sep 2026 · 3 min read</span>
-        <span class="res-arrow" aria-hidden="true">→</span>
-      </a>
-      <a class="res-row" href="#call" data-cat="method">
-        <span class="res-cat cat-software">Method</span>
-        <div>
-          <h3>How a call actually gets made</h3>
-          <p>Gather, debate, propose, stress-test, commit. Five steps, no shortcuts.</p>
-        </div>
-        <span class="res-meta">3 Sep 2026 · 5 min read</span>
-        <span class="res-arrow" aria-hidden="true">→</span>
-      </a>
-      <a class="res-row" href="#hood" data-cat="technical">
-        <span class="res-cat cat-semis">Technical</span>
-        <div>
-          <h3>Under the hood</h3>
-          <p>LangGraph, live market data, and the published paper behind it all.</p>
-        </div>
-        <span class="res-meta">3 Sep 2026 · 6 min read</span>
-        <span class="res-arrow" aria-hidden="true">→</span>
-      </a>
-    </section>
-
     <!-- The explainer -->
     <section class="doc reveal" style="margin-bottom:62px;">
-      <h3 id="idea">The idea, in a sentence</h3>
-      <p>Instead of one model taking a wild guess at the market, TradingAgents runs a small team of AI agents that behave like a real investment desk. Each one has a job. They argue it out. A portfolio manager makes the final call.</p>
+      <h3 id="goal">Our goal</h3>
+      <p>Our goal is to use AI agents to build funds that outperform the S&amp;P 500. Not tips, not signals: three real, fully managed portfolios you can watch, with the reasoning behind every decision published the same day.</p>
 
-      <h3 id="team">Who sits on the desk</h3>
+      <h3 id="team">How TradingAgents works</h3>
+      <p>TradingAgents is open research that runs a small team of AI agents the way a real investment desk works. Instead of asking one model to guess, each agent has a job, they argue it out, and a manager makes the final call.</p>
       <ul>
-        <li><b>News agent</b> — reads the headlines and earnings for each stock and works out what actually matters.</li>
-        <li><b>Macro agent</b> — watches rates, inflation and the broad market. The weather overhead.</li>
+        <li><b>News agent</b> — reads the headlines and earnings and works out what actually matters.</li>
+        <li><b>Macro agent</b> — watches interest rates, inflation and the wider market. The weather overhead.</li>
         <li><b>Sentiment agent</b> — reads the mood. Is the crowd greedy, scared, or half asleep.</li>
-        <li><b>The researchers</b> — a bull and a bear take opposite sides and genuinely argue each name.</li>
-        <li><b>The trader</b> — turns that argument into a proposed move.</li>
-        <li><b>The risk team</b> — stress-tests the move before it is allowed anywhere near the book.</li>
+        <li><b>The researchers</b> — a bull and a bear take opposite sides and genuinely argue each company.</li>
+        <li><b>The trader</b> — turns that argument into a concrete move.</li>
+        <li><b>The risk team</b> — stress-tests the move before it goes anywhere near real money.</li>
         <li><b>The portfolio manager</b> — weighs the lot and sets the final position.</li>
       </ul>
+      <p>The point of the arguing is simple. Ask one model "should I buy this?" and you get a confident, shallow yes. Make a bull and a bear fight over it, then make a risk team sign off, and the weak spots come straight to the surface.</p>
 
-      <h3 id="why">Why a team beats one model</h3>
-      <p>Ask a single model "should I buy this?" and you usually get a confident, shallow yes. Force a bull and a bear to fight over it, then make a risk team sign off, and the weak points that one quick answer would gloss over come straight to the surface. You end up with a decision that shows its working, not a hunch dressed up as certainty.</p>
+      <h3 id="us">How we use it</h3>
+      <p>Most people who pick up TradingAgents point it at a single stock and ask whether to buy. We do something different. We funnel that research into <b>three managed funds</b>, so the agents are not just picking one name, they are running whole portfolios.</p>
+      <p>Every trading day at market close, the full team runs again: the news, macro and sentiment agents gather what happened, the bull and bear argue it out, the risk team checks it against each fund's mandate, and the portfolio manager rebalances. Nothing sits still by accident. Every position is re-examined, and whatever changes get written up in plain English on the <a href="commentary.html">Commentary</a> page that same day.</p>
+
+      <h3 id="funds">The three funds</h3>
+      <ul>
+        <li><b>Whitewater</b> — our high-risk fund. The agents take real swings here, backing fast-moving companies in space, AI and frontier tech. Bigger upside, bumpier ride.</li>
+        <li><b>Tidewater</b> — the balanced middle. Broad index exposure and quality companies, aiming to beat the market without the stomach-drops.</li>
+        <li><b>Stillwater</b> — the defensive fund. Capital preservation first: index funds, bonds, gold and steady names. Deliberately boring.</li>
+      </ul>
+      <p>Same engine, same daily process, three different appetites for risk. <a href="fund.html">See how each one is performing</a>.</p>
 
       <h3 id="call">How a call actually gets made</h3>
       <p>Every position starts as a five-step relay. Nothing skips a stage, and each one can send the decision back down the line.</p>
@@ -179,8 +126,8 @@
       <h3 id="hood">Under the hood</h3>
       <p>The heavier version: TradingAgents is built on LangGraph, which wires the agents into a graph they pass their findings through. It pulls live prices and fundamentals, recent news and macro data, runs each agent as its own language-model call, and lets the researcher and risk stages run several rounds of back-and-forth before the manager commits. It is open research from Tauric Research, so anyone can check exactly how it reaches a call: read the <a href="https://arxiv.org/abs/2412.20138" target="_blank" rel="noopener">paper on arXiv</a> or the <a href="https://github.com/TauricResearch/TradingAgents" target="_blank" rel="noopener">code on GitHub</a>.</p>
 
-      <h3 id="us">Where LiquidAssets comes in</h3>
-      <p>This is where the research meets a real hand on the tiller. LiquidAssets is run by a finance and computer science student who has traded the US and New Zealand markets for years, and who took TradingAgents and pivoted it into three funds at different risk levels — Whitewater, Tidewater and Stillwater — so the same engine can suit a bold appetite or a cautious one. The academic work does the reasoning. The judgement about how to point it, and at what risk, is ours.</p>
+      <h3 id="who">Who is behind it</h3>
+      <p>LiquidAssets is run by a finance and computer science student who has traded the US and New Zealand markets for years. The academic work does the reasoning. The judgement about how to point it, and at what risk, is ours.</p>
 
       <p class="note">Model portfolios only. Not financial advice. No real trades are placed by this prototype.</p>
     </section>
@@ -204,7 +151,7 @@
     </section>
 
     <footer class="site-foot">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="foot-links" aria-label="Footer">
         <a href="index.html">Home</a>
         <a href="fund.html">Funds</a>

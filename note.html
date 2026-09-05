@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <title>LiquidAssets · Daily note</title>
+  <meta name="description" content="What our agents found today, what it means, and what they did about it." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
+</head>
+<body>
+
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="fund.html">Funds</a>
+        <a href="commentary.html" aria-current="page">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-primary btn-sm" href="#subscribe">Subscribe <span aria-hidden="true">↗</span></a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-controls="mobileNav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile">
+    <a href="index.html">Home</a>
+    <a href="fund.html">Funds</a>
+    <a href="commentary.html" aria-current="page">Commentary</a>
+    <a href="research.html">Research</a>
+  </nav>
+
+  <main class="wrap">
+
+    <article class="note-page">
+      <a class="back-link" href="commentary.html"><span aria-hidden="true">←</span> All notes</a>
+
+      <p class="note-page-date" id="noteDate">Today</p>
+      <h1 class="note-page-title" id="noteTitle">The desk's latest note lands here after each close.</h1>
+      <p class="note-page-stand" id="noteStand">Once our agents run, this is where they explain what happened in the market, what it means for your money, and what they decided to do about it.</p>
+
+      <div class="note-body" id="noteBody">
+        <section class="note-block">
+          <h2>What happened today</h2>
+          <p>The agents write this after the US market closes. Check back once today's run is in.</p>
+        </section>
+      </div>
+
+      <div class="note-foot">
+        <a class="btn btn-ghost" href="commentary.html">See previous days <span aria-hidden="true">→</span></a>
+        <a class="btn btn-ghost" href="fund.html">See the funds <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+    <!-- Subscribe -->
+    <section class="subscribe reveal" id="subscribe">
+      <span class="sub-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 6.5l9 6.5 9-6.5"/></svg>
+      </span>
+      <div>
+        <h3>Get the daily note.</h3>
+        <p>Plain-English market notes in your inbox, every morning.</p>
+      </div>
+      <div>
+        <form class="sub-form" id="subForm">
+          <input type="email" id="subEmail" placeholder="Enter your email" aria-label="Email address" required />
+          <button class="btn btn-primary" type="submit">Subscribe <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="sub-fine">No spam. Unsubscribe anytime.</p>
+      </div>
+    </section>
+
+    <footer class="site-foot">
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="fund.html">Funds</a>
+        <a href="commentary.html">Commentary</a>
+        <a href="research.html">Research</a>
+      </nav>
+      <span class="foot-copy">© 2026 LiquidAssets</span>
+    </footer>
+
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

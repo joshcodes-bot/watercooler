@@ -17,7 +17,7 @@
 
   <header class="nav">
     <div class="wrap nav-in">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="nav-links" aria-label="Primary">
         <a href="index.html">Home</a>
         <a href="fund.html" aria-current="page">Funds</a>
@@ -44,7 +44,7 @@
 
     <section class="page-head">
       <h1 class="page-title">Funds<b>.</b></h1>
-      <p class="page-sub">Three strategies. Different risk levels. Same discipline.</p>
+      <p class="page-sub">View our 3 different AI managed funds, based on your risk tolerance.</p>
     </section>
 
     <!-- Fund picker -->
@@ -81,7 +81,7 @@
       <section class="panel reveal">
         <div class="panel-head">
           <h3>Top Holdings</h3>
-          <a class="link-blue" href="commentary.html">View all <span aria-hidden="true">↗</span></a>
+          <a class="link-blue" href="#allHoldings">View all <span aria-hidden="true">↓</span></a>
         </div>
         <table class="holdings">
           <thead><tr><th>Company</th><th>Weight</th></tr></thead>
@@ -122,6 +122,30 @@
       </section>
     </div>
 
+    <!-- Every position in the selected fund -->
+    <section class="panel reveal" id="allHoldings" style="margin-bottom:62px;">
+      <div class="panel-head">
+        <h3>All holdings <span id="allHoldingsFund" class="panel-sub">Whitewater</span></h3>
+        <span class="panel-sub" id="allHoldingsCount">8 positions</span>
+      </div>
+      <div class="table-scroll">
+        <table class="holdings holdings-full">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Ticker</th>
+              <th>Weight</th>
+              <th>Entry</th>
+              <th>Current</th>
+              <th>Return</th>
+            </tr>
+          </thead>
+          <tbody id="allHoldingsBody"></tbody>
+        </table>
+      </div>
+      <p class="panel-note">Model portfolio. Prices update from the live feed; returns are measured from the price the agents opened each position at.</p>
+    </section>
+
     <!-- Subscribe -->
     <section class="subscribe reveal" id="subscribe">
       <span class="sub-icon" aria-hidden="true">
@@ -141,7 +165,7 @@
     </section>
 
     <footer class="site-foot">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="foot-links" aria-label="Footer">
         <a href="index.html">Home</a>
         <a href="fund.html">Funds</a>

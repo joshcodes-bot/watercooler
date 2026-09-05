@@ -169,70 +169,124 @@ function renderFundDetail() {
       </tr>`).join("");
   }
 
-  drawChart(ret);
+  renderAllHoldings(fund);
+  drawChart(fund);
 }
 
-// Deterministic wiggle around the fund's real return, so the shape is stable per fund.
-function drawChart(finalReturn) {
+// Every position in the selected fund, with what the agents paid and where it sits now.
+function renderAllHoldings(fund) {
+  const body = el("allHoldingsBody");
+  if (!body) return;
+  if (el("allHoldingsFund")) el("allHoldingsFund").textContent = fund.name;
+  if (el("allHoldingsCount")) {
+    el("allHoldingsCount").textContent = `${fund.holdings.length} position${fund.holdings.length === 1 ? "" : "s"}`;
+  }
+  body.innerHTML = fund.holdings.map(h => {
+    const entry = Number(h.entryPrice) || 0;
+    const now = Number(h.currentPrice) || 0;
+    const ret = entry ? ((now - entry) / entry) * 100 : 0;
+    return `
+      <tr>
+        <td>${escapeHtml(h.company || h.ticker)}</td>
+        <td class="tk">${escapeHtml(h.ticker)}</td>
+        <td>${Number(h.weight || 0).toFixed(1)}%</td>
+        <td>${money(entry)}</td>
+        <td>${money(now)}</td>
+        <td class="${ret >= 0 ? "positive" : "negative"}">${signed(ret, 2)}</td>
+      </tr>`;
+  }).join("");
+}
+
+// Real performance from the daily snapshots in D1, against the S&P proxy (SPY) recorded
+// on the same days. No history yet means we say so rather than drawing an invented line.
+const MONO = "IBM Plex Mono, monospace";
+
+function drawChart(fund) {
   const svg = el("fundChart");
   if (!svg) return;
   svg.removeAttribute("preserveAspectRatio");
 
-  const W = 560, H = 232, padL = 46, padR = 12, padT = 14, padB = 30;
-  const points = 34;
-  const span = Math.max(6, Math.abs(finalReturn) * 1.8);
-  const seedBase = (activeFundId || "x").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const W = 560, H = 232, padL = 48, padR = 14, padT = 18, padB = 30;
+  const hist = (fund && fund.history) || [];
 
-  const series = [];
-  for (let i = 0; i < points; i++) {
-    const t = i / (points - 1);
-    const drift = finalReturn * t;
-    const wobble = Math.sin(t * 8 + seedBase) * span * 0.13 + Math.sin(t * 19 + seedBase * 0.7) * span * 0.06;
-    series.push(i === points - 1 ? finalReturn : drift + wobble);
+  if (hist.length < 2) {
+    svg.innerHTML = `
+      <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="rgba(255,255,255,.09)"/>
+      <text x="${W / 2}" y="${H / 2 - 6}" text-anchor="middle" fill="#6a7280" font-size="12" font-family="${MONO}">
+        Performance history builds from the daily runs.
+      </text>
+      <text x="${W / 2}" y="${H / 2 + 14}" text-anchor="middle" fill="#4d545e" font-size="11" font-family="${MONO}">
+        One point is recorded at each market close.
+      </text>`;
+    return;
   }
 
-  const x = i => padL + (i / (points - 1)) * (W - padL - padR);
-  const y = v => padT + (1 - (v + span) / (span * 2)) * (H - padT - padB);
+  const fundSeries = hist.map(h => Number(h.returnPct) || 0);
+  const spy0 = Number(hist.find(h => Number(h.spy) > 0)?.spy) || 0;
+  const spySeries = hist.map(h => (spy0 && Number(h.spy) > 0) ? ((Number(h.spy) - spy0) / spy0) * 100 : 0);
 
-  const line = series.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
-  const area = `${line} L ${x(points - 1).toFixed(1)} ${y(-span)} L ${padL} ${y(-span)} Z`;
+  const all = spy0 ? fundSeries.concat(spySeries) : fundSeries.slice();
+  let lo = Math.min(...all, 0);
+  let hi = Math.max(...all, 0);
+  const headroom = Math.max(1, (hi - lo) * 0.2);
+  lo -= headroom;
+  hi += headroom;
 
-  const ticks = [span, span / 2, 0, -span / 2, -span];
-  const grid = ticks.map(v => `
-    <line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W - padR}" y2="${y(v).toFixed(1)}"
-          stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="3 5"/>
-    <text x="${padL - 10}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end"
-          fill="#6a7280" font-size="10" font-family="IBM Plex Mono, monospace">${v >= 0 ? "+" : ""}${v.toFixed(0)}%</text>
-  `).join("");
+  const x = i => padL + (i / (hist.length - 1)) * (W - padL - padR);
+  const y = v => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
+  const path = s => s.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
 
-  const months = ["Jan", "Feb", "Mar", "Apr", "May"];
-  const labels = months.map((m, i) => {
-    const px = padL + (i / (months.length - 1)) * (W - padL - padR);
-    return `<text x="${px.toFixed(1)}" y="${H - 8}" text-anchor="middle" fill="#6a7280" font-size="10"
-             font-family="IBM Plex Mono, monospace">${m} '26</text>`;
+  let grid = "";
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const v = lo + (i / ticks) * (hi - lo);
+    grid += `<line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W - padR}" y2="${y(v).toFixed(1)}"
+               stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="3 5"/>
+             <text x="${padL - 10}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end" fill="#6a7280"
+               font-size="10" font-family="${MONO}">${v >= 0 ? "+" : ""}${v.toFixed(1)}%</text>`;
+  }
+
+  const marks = [...new Set([0, Math.floor((hist.length - 1) / 2), hist.length - 1])];
+  const xLabels = marks.map(i => {
+    const d = new Date(`${hist[i].date}T00:00:00`);
+    const label = Number.isNaN(d.getTime())
+      ? hist[i].date
+      : d.toLocaleDateString("en-NZ", { day: "numeric", month: "short" });
+    return `<text x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" fill="#6a7280"
+              font-size="10" font-family="${MONO}">${escapeHtml(label)}</text>`;
   }).join("");
+
+  const area = `${path(fundSeries)} L ${x(hist.length - 1).toFixed(1)} ${y(lo)} L ${padL} ${y(lo)} Z`;
+  const bench = spy0
+    ? `<path d="${path(spySeries)}" fill="none" stroke="#6a7280" stroke-width="1.4" stroke-dasharray="4 4"/>`
+    : "";
+  const legend = `
+    <line x1="${W - padR - 140}" y1="${padT - 7}" x2="${W - padR - 126}" y2="${padT - 7}" stroke="#4d8bff" stroke-width="2"/>
+    <text x="${W - padR - 120}" y="${padT - 3}" fill="#949ca8" font-size="10" font-family="${MONO}">Fund</text>
+    ${spy0 ? `<line x1="${W - padR - 78}" y1="${padT - 7}" x2="${W - padR - 64}" y2="${padT - 7}"
+                stroke="#6a7280" stroke-width="1.4" stroke-dasharray="4 4"/>
+              <text x="${W - padR - 58}" y="${padT - 3}" fill="#949ca8" font-size="10" font-family="${MONO}">S&amp;P 500</text>` : ""}`;
 
   svg.innerHTML = `
     <defs>
       <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#2563eb" stop-opacity=".35"/>
+        <stop offset="0%" stop-color="#2563eb" stop-opacity=".32"/>
         <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
       </linearGradient>
     </defs>
     ${grid}
     <path d="${area}" fill="url(#fillGrad)"/>
-    <path d="${line}" fill="none" stroke="#4d8bff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-    ${labels}
+    ${bench}
+    <path d="${path(fundSeries)}" fill="none" stroke="#4d8bff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    ${xLabels}
+    ${legend}
   `;
 }
 
 /* ---------------- Commentary ---------------- */
-const CATS = [
-  { key: "markets", label: "Markets", cls: "tag-markets" },
-  { key: "macro", label: "Macro", cls: "tag-macro" },
-  { key: "portfolio", label: "Portfolio", cls: "tag-portfolio" },
-  { key: "sentiment", label: "Sentiment", cls: "tag-sentiment" }
-];
+function noteHref(brief) {
+  return brief?.date ? `note.html?date=${encodeURIComponent(brief.date)}` : "note.html";
+}
 
 async function hydrateCommentary() {
   const list = el("brief");
@@ -246,29 +300,64 @@ async function hydrateCommentary() {
 
     // Featured = newest brief.
     const b = briefs[0];
-    if (el("featTitle")) {
-      if (b.lede) el("featTitle").textContent = b.lede;
-      if (el("featDate")) el("featDate").textContent = formatDate(b.date);
-      if (el("featBody")) el("featBody").textContent = b.market || b.why || b.moves || "";
-    }
+    if (el("featTitle") && b.lede) el("featTitle").textContent = b.lede;
+    if (el("featDate")) el("featDate").textContent = formatDate(b.date);
+    if (el("featBody")) el("featBody").textContent = b.market || b.why || b.moves || "";
+    if (el("featTag")) el("featTag").textContent = "Daily note";
+    if (el("featLink")) el("featLink").href = noteHref(b);
 
-    // The rest become rows.
+    // Previous days: date, headline, read. No tags, no filters.
     const rows = briefs.slice(1);
     if (rows.length) {
-      list.innerHTML = rows.map((brief, i) => {
-        const cat = CATS[i % CATS.length];
-        return `
-          <a class="note-row" href="commentary.html" data-cat="${cat.key}">
-            <span class="tag-pill ${cat.cls}">${cat.label}</span>
-            <span class="date">${escapeHtml(formatDate(brief.date))}</span>
-            <h3>${escapeHtml(brief.lede || brief.market || "Daily note")}</h3>
-            <span class="read">Read <span aria-hidden="true">→</span></span>
-          </a>`;
-      }).join("");
+      list.innerHTML = rows.map(brief => `
+        <a class="note-row" href="${noteHref(brief)}">
+          <span class="date">${escapeHtml(formatDate(brief.date))}</span>
+          <h3>${escapeHtml(brief.lede || brief.market || "Daily note")}</h3>
+          <span class="read">Read <span aria-hidden="true">→</span></span>
+        </a>`).join("");
+    } else {
+      list.innerHTML = `<p class="panel-note">This is the first note. Previous days will stack up here.</p>`;
     }
-    initFilters();
   } catch (error) {
     // Keep the placeholder notes.
+  }
+}
+
+/* ---------------- Single note page ---------------- */
+async function renderNotePage() {
+  if (!el("noteTitle")) return;
+  const wanted = new URLSearchParams(location.search).get("date");
+  try {
+    const res = await fetch("/api/research", { headers: { accept: "application/json" } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const briefs = data?.briefs || [];
+    if (!briefs.length) return;
+    const b = (wanted && briefs.find(x => x.date === wanted)) || briefs[0];
+
+    if (b.lede) el("noteTitle").textContent = b.lede;
+    if (el("noteDate")) el("noteDate").textContent = formatDate(b.date);
+    if (el("noteStand")) el("noteStand").textContent = b.market || b.why || "";
+    document.title = `LiquidAssets · ${formatDate(b.date) || "Daily note"}`;
+
+    const blocks = [
+      ["What we did", b.moves],
+      ["Why we did it", b.why],
+      ["How the market felt", b.sentiment],
+      ["The news that mattered", b.news],
+      ["What we're watching next", b.comingUp]
+    ].filter(([, value]) => value);
+
+    const body = el("noteBody");
+    if (body && blocks.length) {
+      body.innerHTML = blocks.map(([heading, value]) => `
+        <section class="note-block">
+          <h2>${escapeHtml(heading)}</h2>
+          <p>${escapeHtml(value)}</p>
+        </section>`).join("");
+    }
+  } catch (error) {
+    // Keep the placeholder note.
   }
 }
 
@@ -283,41 +372,10 @@ async function renderHomeNote() {
     if (b.lede) el("homeNoteTitle").textContent = b.lede;
     if (el("homeNoteDate")) el("homeNoteDate").textContent = formatDate(b.date);
     if (el("homeNoteSub") && (b.market || b.moves)) el("homeNoteSub").textContent = b.market || b.moves;
+    if (el("homeNote")) el("homeNote").href = noteHref(b);
   } catch (error) {
     // Keep the placeholder.
   }
-}
-
-/* ---------------- Filters + search ---------------- */
-function initFilters() {
-  $$(".chips").forEach(group => {
-    if (group.dataset.bound === "1") return; // may run again after live data loads
-    group.dataset.bound = "1";
-    const chips = $$(".chip", group);
-    chips.forEach(chip => chip.addEventListener("click", () => {
-      chips.forEach(c => c.setAttribute("aria-selected", c === chip));
-      applyFilter(chip.dataset.filter);
-    }));
-  });
-}
-
-function applyFilter(filter) {
-  const rows = [...$$(".note-row"), ...$$(".res-row")];
-  rows.forEach(row => {
-    const show = !filter || filter === "all" || row.dataset.cat === filter;
-    row.style.display = show ? "" : "none";
-  });
-}
-
-function initSearch() {
-  const input = el("researchSearch");
-  if (!input) return;
-  input.addEventListener("input", () => {
-    const q = input.value.trim().toLowerCase();
-    $$(".res-row").forEach(row => {
-      row.style.display = !q || row.textContent.toLowerCase().includes(q) ? "" : "none";
-    });
-  });
 }
 
 /* ---------------- Live quotes ---------------- */
@@ -356,6 +414,7 @@ async function hydrateFunds() {
     if (!live.length) return;
     funds = live.map(f => ({
       id: f.code, code: f.code, name: f.name, risk: f.risk, description: f.description,
+      history: f.history || [],
       holdings: (f.holdings || []).map(h => ({
         ticker: h.ticker, company: h.company, weight: h.weight,
         entryPrice: h.entryPrice, currentPrice: h.currentPrice
@@ -420,14 +479,13 @@ function observeReveals() {
 /* ---------------- Boot ---------------- */
 initNav();
 initSubscribe();
-initFilters();
-initSearch();
 renderHome();
 renderFundsPage();
 observeReveals();
 
 hydrateFunds();
 hydrateCommentary();
+renderNotePage();
 renderHomeNote();
 refreshQuotes();
 setInterval(refreshQuotes, 60000);

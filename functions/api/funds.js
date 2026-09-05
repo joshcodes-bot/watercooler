@@ -17,6 +17,24 @@ export async function onRequestGet(context) {
       "SELECT fund_code, ticker, company, weight, cost_basis, shares, current_price, reason FROM holdings"
     ).all()).results || [];
 
+    // Daily snapshots so the site can chart real performance vs the S&P proxy.
+    let history = [];
+    try {
+      history = (await env.DB.prepare(
+        "SELECT fund_code, snap_date, return_pct, spy FROM history ORDER BY snap_date ASC"
+      ).all()).results || [];
+    } catch (_) {
+      history = []; // table may not exist yet on older databases
+    }
+    const histByFund = {};
+    for (const h of history) {
+      (histByFund[h.fund_code] ||= []).push({
+        date: h.snap_date,
+        returnPct: h.return_pct,
+        spy: h.spy
+      });
+    }
+
     const byFund = {};
     for (const h of holdings) {
       (byFund[h.fund_code] ||= []).push({
@@ -35,7 +53,8 @@ export async function onRequestGet(context) {
       name: f.name,
       risk: f.risk,
       description: f.description,
-      holdings: byFund[f.code] || []
+      holdings: byFund[f.code] || [],
+      history: histByFund[f.code] || []
     }));
 
     return json({ funds: out });

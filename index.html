@@ -17,7 +17,7 @@
 
   <header class="nav">
     <div class="wrap nav-in">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="nav-links" aria-label="Primary">
         <a href="index.html" aria-current="page">Home</a>
         <a href="fund.html">Funds</a>
@@ -47,13 +47,13 @@
       <div class="hero-grid">
         <div>
           <h1>
-            <span>Three funds.</span>
-            <span class="accent">Clear thinking.</span>
+            <span>Our funds are</span>
+            <span class="accent">managed by AI.</span>
           </h1>
-          <p class="lede">Simple investment strategies, updated daily. Research and commentary, written clearly.</p>
+          <p class="lede">Using multiple agents to research, debate and manage funds, tailored to 3 risk levels.</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="fund.html">View funds <span aria-hidden="true">→</span></a>
-            <a class="btn btn-ghost" href="#subscribe">Subscribe for notes <span aria-hidden="true">↗</span></a>
+            <a class="btn btn-ghost" href="commentary.html">Read today's movements <span aria-hidden="true">↗</span></a>
           </div>
         </div>
         <div class="hero-art">
@@ -86,7 +86,10 @@
 
     <!-- Funds -->
     <section class="reveal">
-      <h2 class="section-title">The funds</h2>
+      <a class="section-link" href="fund.html">
+        <h2 class="section-title">Check out how each fund is performing</h2>
+        <span class="link-blue">View funds <span aria-hidden="true">→</span></span>
+      </a>
       <div class="fund-cards" id="homeFunds">
         <a class="fund-card" href="fund.html">
           <span class="risk-label risk-high">High risk</span>
@@ -120,7 +123,10 @@
 
     <!-- Latest note -->
     <section class="reveal">
-      <h2 class="section-title">From the latest note</h2>
+      <a class="section-link" href="commentary.html">
+        <h2 class="section-title">Read our agents' daily economic report, and how they managed our funds today</h2>
+        <span class="link-blue">Read the notes <span aria-hidden="true">→</span></span>
+      </a>
       <a class="note-card" href="commentary.html" id="homeNote">
         <div>
           <div class="note-date" id="homeNoteDate">Today</div>
@@ -155,7 +161,7 @@
     </section>
 
     <footer class="site-foot">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="foot-links" aria-label="Footer">
         <a href="fund.html">Funds</a>
         <a href="commentary.html">Commentary</a>

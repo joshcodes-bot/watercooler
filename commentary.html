@@ -17,7 +17,7 @@
 
   <header class="nav">
     <div class="wrap nav-in">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="nav-links" aria-label="Primary">
         <a href="index.html">Home</a>
         <a href="fund.html">Funds</a>
@@ -44,7 +44,7 @@
 
     <section class="page-head">
       <h1 class="page-title">Commentary<b>.</b></h1>
-      <p class="page-sub">Short market notes, written clearly.</p>
+      <p class="page-sub">What our agents found each day, and what they did about it. Written in plain English.</p>
     </section>
 
     <!-- Featured note -->
@@ -77,52 +77,28 @@
         <h2 id="featTitle">The desk's latest read lands here after each close.</h2>
         <p id="featBody">Once the agents run, this is where they explain what the market did, what they decided, and the trades they made. In plain English, no jargon.</p>
         <div class="featured-actions">
-          <a class="btn btn-primary" href="research.html">Read note <span aria-hidden="true">→</span></a>
-          <span class="read-time">5 min read</span>
+          <a class="btn btn-primary" id="featLink" href="note.html">Read note <span aria-hidden="true">→</span></a>
+          <span class="read-time">3 min read</span>
         </div>
       </div>
     </article>
 
-    <!-- Filters -->
-    <div class="filter-bar">
-      <div class="chips" role="tablist" aria-label="Filter notes">
-        <button class="chip" role="tab" aria-selected="true" data-filter="all">All</button>
-        <button class="chip" role="tab" aria-selected="false" data-filter="markets">Markets</button>
-        <button class="chip" role="tab" aria-selected="false" data-filter="macro">Macro</button>
-        <button class="chip" role="tab" aria-selected="false" data-filter="portfolio">Portfolio</button>
-      </div>
-    </div>
-
-    <!-- Note list (live briefs replace these once the AI runs) -->
+    <!-- Previous days (live briefs replace these once the AI runs) -->
+    <h2 class="section-title">Previous days</h2>
     <section class="note-list" id="brief">
-      <a class="note-row" href="research.html" data-cat="markets">
-        <span class="tag-pill tag-markets">Markets</span>
+      <a class="note-row" href="note.html">
         <span class="date">2 Sep 2026</span>
-        <h3>Equities grind higher on breadth.</h3>
+        <h3>A quiet day, and we barely touched a thing.</h3>
         <span class="read">Read <span aria-hidden="true">→</span></span>
       </a>
-      <a class="note-row" href="research.html" data-cat="macro">
-        <span class="tag-pill tag-macro">Macro</span>
+      <a class="note-row" href="note.html">
         <span class="date">1 Sep 2026</span>
-        <h3>The calm before the pivot.</h3>
+        <h3>Everyone is waiting on the same number.</h3>
         <span class="read">Read <span aria-hidden="true">→</span></span>
       </a>
-      <a class="note-row" href="research.html" data-cat="portfolio">
-        <span class="tag-pill tag-portfolio">Portfolio</span>
+      <a class="note-row" href="note.html">
         <span class="date">31 Aug 2026</span>
-        <h3>Quality bias pays into seasonality.</h3>
-        <span class="read">Read <span aria-hidden="true">→</span></span>
-      </a>
-      <a class="note-row" href="research.html" data-cat="markets">
-        <span class="tag-pill tag-sentiment">Sentiment</span>
-        <span class="date">30 Aug 2026</span>
-        <h3>Risk appetite steady, not euphoric.</h3>
-        <span class="read">Read <span aria-hidden="true">→</span></span>
-      </a>
-      <a class="note-row" href="research.html" data-cat="macro">
-        <span class="tag-pill tag-macro">Macro</span>
-        <span class="date">29 Aug 2026</span>
-        <h3>Jackson Hole preview: less is more.</h3>
+        <h3>Boring won the month, and we are fine with that.</h3>
         <span class="read">Read <span aria-hidden="true">→</span></span>
       </a>
     </section>
@@ -146,7 +122,7 @@
     </section>
 
     <footer class="site-foot">
-      <a class="brand" href="index.html">LiquidAssets</a>
+      <a class="brand" href="index.html" aria-label="LiquidAssets home"><img src="logo.png" alt="LiquidAssets" width="2048" height="451" /></a>
       <nav class="foot-links" aria-label="Footer">
         <a href="fund.html">Funds</a>
         <a href="commentary.html">Commentary</a>

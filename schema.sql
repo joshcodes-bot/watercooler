@@ -34,6 +34,19 @@ CREATE TABLE IF NOT EXISTS briefs (
   created_at TEXT
 );
 
+-- One row per fund per day: what the book was worth, how far it is up or down since
+-- inception, and the S&P proxy (SPY) price that day so the benchmark can be derived.
+CREATE TABLE IF NOT EXISTS history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  fund_code TEXT NOT NULL,
+  snap_date TEXT NOT NULL,
+  value REAL NOT NULL DEFAULT 0,
+  return_pct REAL NOT NULL DEFAULT 0,
+  spy REAL NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_history_fund ON history(fund_code, snap_date);
+
 CREATE TABLE IF NOT EXISTS runs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   started_at TEXT,
