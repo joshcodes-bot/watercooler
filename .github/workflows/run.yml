@@ -1,0 +1,39 @@
+name: run-desk
+
+on:
+  schedule:
+    - cron: "0 21 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Trigger the desk
+        env:
+          RUN_URL: https://watercoolerfund.com/api/run
+          RUN_TOKEN: ${{ secrets.RUN_TOKEN }}
+        run: |
+          if [ -z "$RUN_TOKEN" ]; then
+            echo "::error::RUN_TOKEN secret is not set on this repository."
+            exit 1
+          fi
+
+          echo "POST $RUN_URL"
+          code=$(curl -sS -o body.json -w "%{http_code}" \
+                   -X POST "$RUN_URL" \
+                   -H "x-run-token: $RUN_TOKEN" \
+                   --max-time 600)
+
+          echo "HTTP $code"
+          echo "--- response ---"
+          cat body.json || true
+          echo
+          echo "----------------"
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Run failed with HTTP $code. 401 means the token here does not match the one on the Pages project."
+            exit 1
+          fi
+          echo "Desk run complete."
